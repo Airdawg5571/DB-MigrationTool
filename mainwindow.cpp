@@ -27,18 +27,20 @@ MainWindow::MainWindow(QWidget *parent) :
     dbContModel = new EnhancedSqlTableModel(this);
     dbContModel->setTable("conn");
     dbContModel->select();
+    dbContModel->setHeaderData(1,Qt::Horizontal, "Name", Qt::DisplayRole);
+    dbContModel->setHeaderData(2,Qt::Horizontal, "Database", Qt::DisplayRole);
+    dbContModel->setHeaderData(3,Qt::Horizontal, "Host", Qt::DisplayRole);
+    dbContModel->setHeaderData(4,Qt::Horizontal, "Port", Qt::DisplayRole);
     dbContModel->setEditStrategy(QSqlTableModel::OnFieldChange);\
     dbContModel->removeColumns(3,3,QModelIndex());
 
     //Setup the table
     ui->tabServers->setModel(dbContModel);
-    ui->tabServers->resizeColumnsToContents();
     ui->tabServers->hideColumn(0); //Hide, not remove, as not to ruin primary key.
     ui->tabServers->resizeColumnsToContents();
     ui->tabServers->resizeRowsToContents();
     ui->tabServers->setColumnWidth(1,240);
-
-
+    ui->tabServers->horizontalHeader()->setSectionResizeMode(1,QHeaderView::Stretch); //Stretch first column to window
 }
 
 MainWindow::~MainWindow()
