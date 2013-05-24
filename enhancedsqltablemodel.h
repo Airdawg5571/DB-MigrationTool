@@ -9,6 +9,8 @@ class EnhancedSqlTableModel : public QSqlRelationalTableModel
 public:
     explicit EnhancedSqlTableModel(QObject *parent = 0);
     
+    QVariant data(const QModelIndex &item, int role) const;
+    Qt::ItemFlags flags(const QModelIndex &index) const;
 signals:
     
 public slots:

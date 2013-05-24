@@ -17,11 +17,10 @@ MainWindow::MainWindow(QWidget *parent) :
      ******************************************************************/
 
     dbContainer = QSqlDatabase::addDatabase("QSQLITE");
-
     dbContainer.setDatabaseName("../DB-MigrationTool/dbCont.sqlite"); //TODO : Change this path to reflect the release path
     dbContainer.open();
     //Try to create table, if table already exists, will jump over with hidden SQLite error "Unable to execute statement"
-    dbContQuery= new QSqlQuery("CREATE table conn(idx INTEGER PRIMARY KEY ASC, name TEXT, databaseName TEXT  driver TEXT, user TEXT, pass TEXT, hostname TEXT, port INTEGER)",dbContainer);
+    dbContQuery = new QSqlQuery("CREATE table conn(idx INTEGER PRIMARY KEY ASC, name TEXT, databaseName TEXT  driver TEXT, user TEXT, pass TEXT, hostname TEXT, port INTEGER, status TEXT)",dbContainer);
 
     //Setup the model
     dbContModel = new EnhancedSqlTableModel(this);
@@ -31,8 +30,13 @@ MainWindow::MainWindow(QWidget *parent) :
     dbContModel->setHeaderData(2,Qt::Horizontal, "Database", Qt::DisplayRole);
     dbContModel->setHeaderData(3,Qt::Horizontal, "Host", Qt::DisplayRole);
     dbContModel->setHeaderData(4,Qt::Horizontal, "Port", Qt::DisplayRole);
+    dbContModel->setHeaderData(5,Qt::Horizontal, "Status", Qt::DisplayRole);
     dbContModel->setEditStrategy(QSqlTableModel::OnFieldChange);\
     dbContModel->removeColumns(3,3,QModelIndex());
+
+    //"RESET" status column on "UNKNOWN"
+    for (int i=0;i<dbContModel->rowCount(QModelIndex());i++)
+        dbContModel->setData(dbContModel->index(i,5,QModelIndex()),"UNKNOWN",Qt::EditRole);
 
     //Setup the table
     ui->tabServers->setModel(dbContModel);
@@ -41,6 +45,13 @@ MainWindow::MainWindow(QWidget *parent) :
     ui->tabServers->resizeRowsToContents();
     ui->tabServers->setColumnWidth(1,240);
     ui->tabServers->horizontalHeader()->setSectionResizeMode(1,QHeaderView::Stretch); //Stretch first column to window
+
+    /******************************************************************
+     ***
+     ******************************************************************/
+
+
+
 }
 
 MainWindow::~MainWindow()
