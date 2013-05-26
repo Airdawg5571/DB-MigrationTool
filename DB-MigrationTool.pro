@@ -14,9 +14,12 @@ TEMPLATE = app
 
 SOURCES += main.cpp\
         mainwindow.cpp \
-    enhancedsqltablemodel.cpp
+    enhancedsqltablemodel.cpp \
+    changedbs.cpp
 
 HEADERS  += mainwindow.h \
-    enhancedsqltablemodel.h
+    enhancedsqltablemodel.h \
+    changedbs.h
 
-FORMS    += mainwindow.ui
+FORMS    += mainwindow.ui \
+    changedbs.ui

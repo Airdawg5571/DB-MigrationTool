@@ -3,7 +3,7 @@
 
 #include <QSqlRelationalTableModel>
 
-class EnhancedSqlTableModel : public QSqlRelationalTableModel
+class EnhancedSqlTableModel : public QSqlTableModel
 {
     Q_OBJECT
 public:

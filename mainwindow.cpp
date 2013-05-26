@@ -40,21 +40,22 @@ MainWindow::MainWindow(QWidget *parent) :
 
     //Setup the table
     ui->tabServers->setModel(dbContModel);
-    ui->tabServers->hideColumn(0); //Hide, not remove, as not to ruin primary key.
+    ui->tabServers->hideColumn(0);                                                      //Hide, not remove, as not to ruin primary key.
     ui->tabServers->resizeColumnsToContents();
     ui->tabServers->resizeRowsToContents();
     ui->tabServers->setColumnWidth(1,240);
-    ui->tabServers->horizontalHeader()->setSectionResizeMode(1,QHeaderView::Stretch); //Stretch first column to window
-
-    /******************************************************************
-     ***
-     ******************************************************************/
-
-
+    ui->tabServers->horizontalHeader()->setSectionResizeMode(1,QHeaderView::Stretch);   //Stretch first column to window
 
 }
+
+
 
 MainWindow::~MainWindow()
 {
     delete ui;
+}
+
+void MainWindow::editorClosed()
+{
+    this->dbContModel->select();
 }

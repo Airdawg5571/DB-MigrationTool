@@ -44,8 +44,11 @@
     </property>
     <item>
      <widget class="QLabel" name="label">
+      <property name="toolTip">
+       <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Note: Username and Password can only be edited using the &lt;span style=&quot; font-weight:600;&quot;&gt;Edit...&lt;/span&gt; button.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+      </property>
       <property name="text">
-       <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Hint: You can also edit database information by&lt;span style=&quot; font-weight:600;&quot;&gt; double-clicking&lt;/span&gt; a field or selecting it and pressing &lt;span style=&quot; font-weight:600;&quot;&gt;F2&lt;/span&gt;.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+       <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p align=&quot;center&quot;&gt;Hint: You can also edit database information by&lt;span style=&quot; font-weight:600;&quot;&gt; double-clicking&lt;/span&gt; a field &lt;br/&gt;or selecting it and pressing &lt;span style=&quot; font-weight:600;&quot;&gt;F2&lt;/span&gt;.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
       </property>
      </widget>
     </item>

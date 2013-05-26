@@ -1,8 +1,10 @@
 #include "enhancedsqltablemodel.h"
 #include <QColor>
 
+
+
 EnhancedSqlTableModel::EnhancedSqlTableModel(QObject *parent) :
-    QSqlRelationalTableModel(parent)
+    QSqlTableModel(parent)
 {   
 }
 
@@ -10,23 +12,31 @@ EnhancedSqlTableModel::EnhancedSqlTableModel(QObject *parent) :
 Qt::ItemFlags EnhancedSqlTableModel::flags(const QModelIndex &index) const
 {
     Qt::ItemFlags flags = QSqlTableModel::flags(index);
-    if ((index.column() == 5)) flags &=~Qt::ItemIsEnabled; //Not editable by user, but still changeable
+    if ((index.column() == 5)) flags &=~Qt::ItemIsEnabled;                  //Not editable by user, but still changeable
     return flags;
 }
 
-//Color STATUS column based on value
+//Colorize table
 QVariant EnhancedSqlTableModel::data(const QModelIndex &item, int role) const
 {
-    QVariant value = QSqlQueryModel::data(item,role);
+                                                                            //Colorize STATUS based on value
     if(item.column() == 5 && \
             role == Qt::TextColorRole && \
             item.data(Qt::DisplayRole).toString() == "ALIVE") {
-        return qVariantFromValue(QColor(0,192,0,255));
+        return QVariant::fromValue(QColor(0,192,0,255));
     }
     if(item.column() == 5 && \
             role == Qt::TextColorRole && \
             item.data(Qt::DisplayRole).toString() == "DEAD") {
-        return qVariantFromValue(QColor(192,0,0,255));
+        return QVariant::fromValue(QColor(192,0,0,255));
     }
-    return value;
+
+    if(item.column() == 1 &&                                                //Highlight "Name" column
+            role == Qt::TextColorRole)
+        return QVariant::fromValue(QColor(0,0,192,255));
+
+
+    return QSqlQueryModel::data(item, role);
 }
+
+

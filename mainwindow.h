@@ -8,6 +8,7 @@
 #include <QtSql>
 
 #include "enhancedsqltablemodel.h"
+#include "changedbs.h"
 
 
 namespace Ui {
@@ -28,6 +29,9 @@ private:
 
     EnhancedSqlTableModel *dbContModel;             //Sub-classed "just-in-case"
     Ui::MainWindow *ui;
+    ChangeDBs *changedbs;
+private slots:
+    void editorClosed();
 };
 
 #endif // MAINWINDOW_H
