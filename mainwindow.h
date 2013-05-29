@@ -31,7 +31,9 @@ private:
     Ui::MainWindow *ui;
     ChangeDBs *changedbs;
 private slots:
-    void editorClosed();
+//    void editorClosed();                          //Currently disabled.
+    void enableButtons(QModelIndex index);
+    void disableButtons();
 };
 
 #endif // MAINWINDOW_H

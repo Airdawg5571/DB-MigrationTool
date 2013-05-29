@@ -9,7 +9,7 @@ class EnhancedSqlTableModel : public QSqlTableModel
 public:
     explicit EnhancedSqlTableModel(QObject *parent = 0);
     
-    QVariant data(const QModelIndex &item, int role) const;
+//    QVariant data(const QModelIndex &item, int role) const;
     Qt::ItemFlags flags(const QModelIndex &index) const;
 signals:
     

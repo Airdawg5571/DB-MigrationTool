@@ -12,9 +12,9 @@ MainWindow::MainWindow(QWidget *parent) :
     this->setGeometry(QStyle::alignedRect(Qt::LeftToRight,Qt::AlignCenter, this->size(), qApp->desktop()->availableGeometry()));
     this->ui->statusBar->setSizeGripEnabled(false);
 
-    /******************************************************************
+    /*********************************************************************
      *** Open/create SQLite file for stored database connection options
-     ******************************************************************/
+     *********************************************************************/
 
     dbContainer = QSqlDatabase::addDatabase("QSQLITE");
     dbContainer.setDatabaseName("../DB-MigrationTool/dbCont.sqlite"); //TODO : Change this path to reflect the release path
@@ -46,6 +46,23 @@ MainWindow::MainWindow(QWidget *parent) :
     ui->tabServers->setColumnWidth(1,240);
     ui->tabServers->horizontalHeader()->setSectionResizeMode(1,QHeaderView::Stretch);   //Stretch first column to window
 
+
+    /**************
+     *** Buttons
+     **************/
+
+    //Add
+    changedbs = new ChangeDBs();
+    connect(ui->btnAdd,SIGNAL(clicked()),this->changedbs,SLOT(show()));
+
+    //Edit
+    connect(ui->tabServers,SIGNAL(clicked(QModelIndex)),this,SLOT(enableButtons(QModelIndex)));
+    connect(ui->tabServers,SIGNAL(selectionCleared()),this,SLOT(disableButtons()));
+
+    //Remove
+
+    //Check Status
+
 }
 
 
@@ -55,7 +72,18 @@ MainWindow::~MainWindow()
     delete ui;
 }
 
-void MainWindow::editorClosed()
+void MainWindow::enableButtons(QModelIndex index)
 {
-    this->dbContModel->select();
+    if(index.isValid())
+    {
+        ui->btnEdit->setEnabled(true);
+        ui->btnRemove->setEnabled(true);
+    }
 }
+
+void MainWindow::disableButtons()
+{
+    ui->btnEdit->setEnabled(false);
+    ui->btnRemove->setEnabled(false);
+}
+

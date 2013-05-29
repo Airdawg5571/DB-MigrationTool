@@ -53,7 +53,7 @@
      </widget>
     </item>
     <item>
-     <widget class="QTableView" name="tabServers">
+     <widget class="DBTableView" name="tabServers">
       <property name="frameShadow">
        <enum>QFrame::Plain</enum>
       </property>
@@ -140,6 +140,9 @@
       </item>
       <item>
        <widget class="QPushButton" name="btnEdit">
+        <property name="enabled">
+         <bool>false</bool>
+        </property>
         <property name="statusTip">
          <string>Edit the currently selected database.</string>
         </property>
@@ -156,6 +159,9 @@
       </item>
       <item>
        <widget class="QPushButton" name="btnRemove">
+        <property name="enabled">
+         <bool>false</bool>
+        </property>
         <property name="statusTip">
          <string>Remove the currently selected database.</string>
         </property>
@@ -234,6 +240,21 @@
   </widget>
  </widget>
  <layoutdefault spacing="6" margin="11"/>
+ <customwidgets>
+  <customwidget>
+   <class>DBTableView</class>
+   <extends>QTableView</extends>
+   <header location="global">dbtableview.h</header>
+  </customwidget>
+ </customwidgets>
+ <tabstops>
+  <tabstop>btnAdd</tabstop>
+  <tabstop>btnEdit</tabstop>
+  <tabstop>btnRemove</tabstop>
+  <tabstop>btnStatus</tabstop>
+  <tabstop>cmdNextStep</tabstop>
+  <tabstop>tabServers</tabstop>
+ </tabstops>
  <resources/>
  <connections/>
 </ui>

@@ -16,27 +16,28 @@ Qt::ItemFlags EnhancedSqlTableModel::flags(const QModelIndex &index) const
     return flags;
 }
 
-//Colorize table
-QVariant EnhancedSqlTableModel::data(const QModelIndex &item, int role) const
-{
-                                                                            //Colorize STATUS based on value
-    if(item.column() == 5 && \
-            role == Qt::TextColorRole && \
-            item.data(Qt::DisplayRole).toString() == "ALIVE") {
-        return QVariant::fromValue(QColor(0,192,0,255));
-    }
-    if(item.column() == 5 && \
-            role == Qt::TextColorRole && \
-            item.data(Qt::DisplayRole).toString() == "DEAD") {
-        return QVariant::fromValue(QColor(192,0,0,255));
-    }
 
-    if(item.column() == 1 &&                                                //Highlight "Name" column
-            role == Qt::TextColorRole)
-        return QVariant::fromValue(QColor(0,0,192,255));
+//Colorize table **** DISABLED - BUGGY / Enabled on 'buggy' branch
+//QVariant EnhancedSqlTableModel::data(const QModelIndex &item, int role) const
+//{
+//                                                                            //Colorize STATUS based on value
+//    if(item.column() == 5 && \
+//            role == Qt::TextColorRole && \
+//            item.data(Qt::DisplayRole).toString() == "ALIVE") {
+//        return QVariant::fromValue(QColor(0,192,0,255));
+//    }
+//    if(item.column() == 5 && \
+//            role == Qt::TextColorRole && \
+//            item.data(Qt::DisplayRole).toString() == "DEAD") {
+//        return QVariant::fromValue(QColor(192,0,0,255));
+//    }
+
+//    if(item.column() == 1 &&                                                //Highlight "Name" column
+//            role == Qt::TextColorRole)
+//        return QVariant::fromValue(QColor(0,0,192,255));
 
 
-    return QSqlQueryModel::data(item, role);
-}
+//    return QSqlQueryModel::data(item, role);
+//}
 
 
