@@ -3,9 +3,11 @@
 
 #include <QMainWindow>
 #include <QDesktopWidget>
+#include <QMessageBox>
 #include <QtCore>
 #include <QtGui>
 #include <QtSql>
+#include <QMenu>
 
 #include "enhancedsqltablemodel.h"
 #include "changedbs.h"
@@ -22,18 +24,29 @@ class MainWindow : public QMainWindow
 public:
     explicit MainWindow(QWidget *parent = 0);
     ~MainWindow();
+public slots:
+    void refreshServers();
     
 private:
-    QSqlDatabase dbContainer;
+    QSqlDatabase dbContainer, testDb;
     QSqlQuery *dbContQuery;
-
-    EnhancedSqlTableModel *dbContModel;             //Sub-classed "just-in-case"
+    EnhancedSqlTableModel *dbContModel;
     Ui::MainWindow *ui;
-    ChangeDBs *changedbs;
+    ChangeDBs *editdbs, *adddbs;
+    QMenu *mnuServers;
+    QModelIndex cellIndex;
+    QString indexToBeEdited = 0;
+
 private slots:
-//    void editorClosed();                          //Currently disabled.
     void enableButtons(QModelIndex index);
     void disableButtons();
+    void serversContextMenu(const QPoint &pos);
+
+    void addAction();
+    void editAction();
+    void removeAction();
+    void checkAction();
+    void checkAll();
 };
 
 #endif // MAINWINDOW_H

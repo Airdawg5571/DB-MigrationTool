@@ -1,12 +1,16 @@
 #include "changedbs.h"
 #include "ui_changedbs.h"
+#include <QDebug>
 
 ChangeDBs::ChangeDBs(QWidget *parent) :
     QDialog(parent),
     ui(new Ui::ChangeDBs)
 {
     ui->setupUi(this);
+    drivers = QSqlDatabase::drivers();
+    odbcDrivers = QSettings("HKEY_LOCAL_MACHINE\\SOFTWARE\\ODBC\\ODBCINST.INI\\ODBC Drivers",QSettings::NativeFormat).childKeys();
 
+    //Unimplemented QtSql drivers - no plugins
     drivers.removeAll("QMYSQL3");
     drivers.removeAll("QOCI8");
     drivers.removeAll("QODBC3");
@@ -14,19 +18,48 @@ ChangeDBs::ChangeDBs(QWidget *parent) :
     drivers.removeAll("QTDS7");
     drivers.removeAll("QSQLITE");
 
+    //"File DSN" ODBC drivers - useless
+    odbcDrivers.removeAll("Driver da Microsoft para arquivos texto (*.txt; *.csv)");
+    odbcDrivers.removeAll("Driver do Microsoft Access (*.mdb)" );
+    odbcDrivers.removeAll("Driver do Microsoft Excel(*.xls)" );
+    odbcDrivers.removeAll("Driver do Microsoft Paradox (*.db )");
+    odbcDrivers.removeAll("Driver do Microsoft dBase (*.dbf)" );
+    odbcDrivers.removeAll("Driver para o Microsoft Visual FoxPro" );
+    odbcDrivers.removeAll("Microsoft Access Driver (*.mdb)" );
+    odbcDrivers.removeAll("Microsoft Access-Treiber (*.mdb)" );
+    odbcDrivers.removeAll("Microsoft Excel Driver (*.xls)" );
+    odbcDrivers.removeAll("Microsoft Excel-Treiber (*.xls)" );
+    odbcDrivers.removeAll("Microsoft FoxPro VFP Driver (*.dbf)" );
+    odbcDrivers.removeAll("Microsoft Paradox Driver (*.db )" );
+    odbcDrivers.removeAll("Microsoft Paradox-Treiber (*.db )" );
+    odbcDrivers.removeAll("Microsoft Text Driver (*.txt; *.csv)" );
+    odbcDrivers.removeAll("Microsoft Text-Treiber (*.txt; *.csv)" );
+    odbcDrivers.removeAll("Microsoft Visual FoxPro-Treiber" );
+    odbcDrivers.removeAll("Microsoft dBase Driver (*.dbf)" );
+    odbcDrivers.removeAll("Microsoft dBase VFP Driver (*.dbf)" );
+    odbcDrivers.removeAll("Microsoft dBase-Treiber (*.dbf)" );
+
     ui->cmbDriver->addItems(drivers);
+    ui->cmbODBC->addItems(odbcDrivers);
+    ui->cmbODBC->setVisible(false);
+    ui->chkDSN->setVisible(false);
+    ui->chkDSN->setChecked(true);                                                       //Check it so you can uncheck it 15 lines below :|
 
     //Customize fields for each driver type
-    if(ui->cmbDriver->currentText() == "QODBC") this->setupPlaceholders("QODBC");       //One-item-only workaround
+    if(ui->cmbDriver->currentText() == "QODBC") this->setupLayout("QODBC");             //One-item-only workaround
     connect(ui->cmbDriver,\
             SIGNAL(currentIndexChanged(QString)),\
             this,\
-            SLOT(setupPlaceholders(QString)));
+            SLOT(setupLayout(QString)));
 
     //Buttons
-    connect(ui->btnReset,SIGNAL(clicked()),this,SLOT(resetAction()));
+    connect(ui->btnClear,SIGNAL(clicked()),this,SLOT(clearAction()));
     connect(ui->btnOk,SIGNAL(clicked()),this,SLOT(okAction()));
     connect(ui->btnCancel,SIGNAL(clicked()),this,SLOT(reject()));
+    connect(ui->btnTest,SIGNAL(clicked()),this,SLOT(testAction()));
+
+    connect(ui->chkDSN,SIGNAL(toggled(bool)),SLOT(overrideDSN(bool)));
+    ui->chkDSN->setChecked(false);
 }
 
 ChangeDBs::~ChangeDBs()
@@ -68,9 +101,15 @@ QString ChangeDBs::driver() const
     return this->ui->cmbDriver->currentText();
 }
 
-int ChangeDBs::port() const
+QString ChangeDBs::options() const
 {
-    return this->ui->lnPort->text().toInt();
+    if (ui->chkDSN->isChecked()) return this->ui->cmbODBC->currentText();
+    else return QString("");
+}
+
+QString ChangeDBs::port() const
+{
+    return this->ui->lnPort->text();
 }
 
 
@@ -107,12 +146,17 @@ void ChangeDBs::setDriver(QString driver)
     this->ui->cmbDriver->setCurrentText(driver);
 }
 
+void ChangeDBs::setOptions(QString option)
+{
+    this->ui->cmbODBC->setCurrentText(option);
+}
+
 void ChangeDBs::setPort(QString port)
 {
     this->ui->lnPort->setText(port);
 }
 
-void ChangeDBs::resetAction()
+void ChangeDBs::clearAction()
 {
     this->ui->cmbDriver->setCurrentIndex(0);
     this->ui->lnName->setText("");
@@ -125,14 +169,64 @@ void ChangeDBs::resetAction()
 
 void ChangeDBs::okAction()
 {
+    //TODO: Add validation and sanitize input
+    accept();
 }
 
-void ChangeDBs::setupPlaceholders(QString driver)
+void ChangeDBs::testAction()
+{
+    testDb = QSqlDatabase::addDatabase(driver(),"tests-chdb");
+    testDb.setDatabaseName(dbName());
+    if(ui->chkDSN->isChecked())                                                        //Man-mode a.k.a manual DSN definition
+        testDb.setDatabaseName("Driver={"\
+                               +options()+"};DATABASE="\
+                               +dbName()+";");
+    testDb.setUserName(userName());
+    testDb.setPassword(password());
+    testDb.setHostName(hostName());
+    testDb.setPort(port().toInt());
+
+
+    if(testDb.open())
+        QMessageBox::information(this,"ALIVE","Connection successful!");
+    else
+        QMessageBox::warning(this,"DEAD","Connection failed with message:\n\n"+testDb.lastError().text());
+    testDb.close();
+    testDb.removeDatabase("tests-chdb");
+}
+
+void ChangeDBs::setupLayout(QString driver)
 {
     if (driver == "QODBC")
     {
-        ui->lnUsername->setPlaceholderText("Username -- OPTIONAL");
-        ui->lnPassword->setPlaceholderText("Password -- OPTIONAL");
-        ui->lnDbName->setPlaceholderText("Database name / DSN");
+        ui->lnUsername->setPlaceholderText("Username");
+        ui->lnPassword->setPlaceholderText("Password");
+        ui->lnDbName->setPlaceholderText("DSN name");
+        ui->chkDSN->setVisible(true);
+        ui->cmbODBC->setCurrentIndex(2);                                                //Set on MySQL for now...
     }
+}
+
+void ChangeDBs::overrideDSN(bool ovr)                                                   //Hide/show options already in DSN
+{
+    if(ovr)
+    {
+        ui->chkDSN->setChecked(true);
+        ui->lnDbName->setPlaceholderText("Database name");
+        ui->cmbODBC->show();
+        ui->lnHostname->show();
+        ui->lnPort->show();
+        ui->lnUsername->show();
+        ui->lnPassword->show();
+    }
+    else
+    {
+        ui->lnDbName->setPlaceholderText("Data source name (DSN)");
+        ui->cmbODBC->hide();
+        ui->lnHostname->hide();
+        ui->lnPort->hide();
+        ui->lnUsername->hide();
+        ui->lnPassword->hide();
+    }
+
 }

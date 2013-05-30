@@ -3,6 +3,9 @@
 
 #include <QDialog>
 #include <QSqlDatabase>
+#include <QSettings>
+#include <QMessageBox>
+#include <QtSql>
 
 namespace Ui {
 class ChangeDBs;
@@ -16,7 +19,9 @@ public:
     explicit ChangeDBs(QWidget *parent = 0);
     ~ChangeDBs();
 
-    QStringList drivers=QSqlDatabase::drivers();
+    QStringList drivers;
+    QStringList odbcDrivers;
+    QSqlDatabase testDb;
 
     QString name() const;
     QString dbName() const;
@@ -24,7 +29,8 @@ public:
     QString password() const;
     QString hostName() const;
     QString driver() const;
-    int port() const;
+    QString options() const;
+    QString port() const;
 
     void setName(QString name);
     void setDbName(QString dbName);
@@ -32,15 +38,20 @@ public:
     void setPassword(QString password);
     void setHostName(QString hostName);
     void setDriver(QString driver);
+    void setOptions(QString option);
     void setPort(QString port);
+
+public slots:
+    void overrideDSN(bool ovr);
+
 private:
     Ui::ChangeDBs *ui;
 
-
 private slots:
-    void setupPlaceholders(QString driver);
-    void resetAction();
+    void setupLayout(QString driver);
+    void clearAction();
     void okAction();
+    void testAction();
 };
 
 #endif // CHANGEDBS_H

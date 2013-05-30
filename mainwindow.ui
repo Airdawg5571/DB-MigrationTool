@@ -54,6 +54,12 @@
     </item>
     <item>
      <widget class="DBTableView" name="tabServers">
+      <property name="minimumSize">
+       <size>
+        <width>532</width>
+        <height>210</height>
+       </size>
+      </property>
       <property name="frameShadow">
        <enum>QFrame::Plain</enum>
       </property>
@@ -62,6 +68,12 @@
       </property>
       <property name="editTriggers">
        <set>QAbstractItemView::DoubleClicked|QAbstractItemView::EditKeyPressed</set>
+      </property>
+      <property name="showDropIndicator" stdset="0">
+       <bool>false</bool>
+      </property>
+      <property name="dragDropOverwriteMode">
+       <bool>false</bool>
       </property>
       <property name="alternatingRowColors">
        <bool>true</bool>
@@ -177,22 +189,6 @@
        </widget>
       </item>
       <item>
-       <widget class="QPushButton" name="btnStatus">
-        <property name="statusTip">
-         <string>Check connectivity of currently selected database.</string>
-        </property>
-        <property name="styleSheet">
-         <string notr="true"/>
-        </property>
-        <property name="text">
-         <string>&amp;Check status</string>
-        </property>
-        <property name="flat">
-         <bool>false</bool>
-        </property>
-       </widget>
-      </item>
-      <item>
        <spacer name="horizontalSpacer_2_2">
         <property name="orientation">
          <enum>Qt::Horizontal</enum>
@@ -204,6 +200,22 @@
          </size>
         </property>
        </spacer>
+      </item>
+      <item>
+       <widget class="QPushButton" name="btnStatus">
+        <property name="statusTip">
+         <string>Check connection status for each table entry.</string>
+        </property>
+        <property name="styleSheet">
+         <string notr="true"/>
+        </property>
+        <property name="text">
+         <string>&amp;Check all</string>
+        </property>
+        <property name="flat">
+         <bool>false</bool>
+        </property>
+       </widget>
       </item>
      </layout>
     </item>
