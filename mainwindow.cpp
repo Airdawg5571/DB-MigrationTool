@@ -75,6 +75,9 @@ MainWindow::MainWindow(QWidget *parent) :
     //Menu
     ui->tabServers->setContextMenuPolicy(Qt::CustomContextMenu);
     connect(ui->tabServers,SIGNAL(customContextMenuRequested(QPoint)),this,SLOT(serversContextMenu(QPoint)));
+
+    //Next
+    connect(ui->cmdNextStep,SIGNAL(clicked()),SLOT(nextStep()));
 }
 
 
@@ -238,4 +241,11 @@ void MainWindow::checkAll()
         cellIndex = dbContModel->index(i,0);
         this->checkAction();
     }
+}
+
+void MainWindow::nextStep()
+{
+    Step2 *secondStep = new Step2(NULL);
+    secondStep->show();
+    this->hide();
 }

@@ -16,12 +16,15 @@ SOURCES += main.cpp\
         mainwindow.cpp \
     enhancedsqltablemodel.cpp \
     changedbs.cpp \
-    dbtableview.cpp
+    dbtableview.cpp \
+    step2.cpp
 
 HEADERS  += mainwindow.h \
     enhancedsqltablemodel.h \
     changedbs.h \
-    dbtableview.h
+    dbtableview.h \
+    step2.h
 
 FORMS    += mainwindow.ui \
-    changedbs.ui
+    changedbs.ui \
+    step2.ui

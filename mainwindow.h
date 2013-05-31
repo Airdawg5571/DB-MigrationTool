@@ -11,6 +11,7 @@
 
 #include "enhancedsqltablemodel.h"
 #include "changedbs.h"
+#include "step2.h"
 
 
 namespace Ui {
@@ -47,6 +48,7 @@ private slots:
     void removeAction();
     void checkAction();
     void checkAll();
+    void nextStep();
 };
 
 #endif // MAINWINDOW_H
