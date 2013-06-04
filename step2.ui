@@ -49,7 +49,7 @@
      </rect>
     </property>
    </widget>
-   <widget class="QTableView" name="tabFirstDB">
+   <widget class="TabView" name="tabFirstDB">
     <property name="geometry">
      <rect>
       <x>30</x>
@@ -70,33 +70,8 @@
     <property name="defaultDropAction">
      <enum>Qt::CopyAction</enum>
     </property>
-    <property name="selectionMode">
-     <enum>QAbstractItemView::SingleSelection</enum>
-    </property>
-    <property name="selectionBehavior">
-     <enum>QAbstractItemView::SelectRows</enum>
-    </property>
-   </widget>
-   <widget class="QTableView" name="tabSecondDB">
-    <property name="geometry">
-     <rect>
-      <x>370</x>
-      <y>80</y>
-      <width>301</width>
-      <height>311</height>
-     </rect>
-    </property>
-    <property name="editTriggers">
-     <set>QAbstractItemView::NoEditTriggers</set>
-    </property>
-    <property name="dragEnabled">
+    <property name="alternatingRowColors">
      <bool>true</bool>
-    </property>
-    <property name="dragDropMode">
-     <enum>QAbstractItemView::DragDrop</enum>
-    </property>
-    <property name="defaultDropAction">
-     <enum>Qt::CopyAction</enum>
     </property>
     <property name="selectionMode">
      <enum>QAbstractItemView::SingleSelection</enum>
@@ -144,9 +119,47 @@
      <string>Database 2</string>
     </property>
    </widget>
+   <widget class="TabView" name="tabSecondDB">
+    <property name="geometry">
+     <rect>
+      <x>370</x>
+      <y>80</y>
+      <width>301</width>
+      <height>311</height>
+     </rect>
+    </property>
+    <property name="editTriggers">
+     <set>QAbstractItemView::NoEditTriggers</set>
+    </property>
+    <property name="dragEnabled">
+     <bool>true</bool>
+    </property>
+    <property name="dragDropMode">
+     <enum>QAbstractItemView::DragDrop</enum>
+    </property>
+    <property name="defaultDropAction">
+     <enum>Qt::CopyAction</enum>
+    </property>
+    <property name="alternatingRowColors">
+     <bool>true</bool>
+    </property>
+    <property name="selectionMode">
+     <enum>QAbstractItemView::SingleSelection</enum>
+    </property>
+    <property name="selectionBehavior">
+     <enum>QAbstractItemView::SelectRows</enum>
+    </property>
+   </widget>
   </widget>
   <widget class="QStatusBar" name="statusBar"/>
  </widget>
+ <customwidgets>
+  <customwidget>
+   <class>TabView</class>
+   <extends>QTableView</extends>
+   <header location="global">step2.h</header>
+  </customwidget>
+ </customwidgets>
  <resources/>
  <connections/>
 </ui>

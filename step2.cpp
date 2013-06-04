@@ -71,22 +71,19 @@ void Step2::checkTableF(int row)
     }
 
     QStandardItemModel *model = new QStandardItemModel(ui->tabFirstDB);
-    model->insertColumns(0,2);
+    model->insertColumns(0,1);
     model->insertRows(0,testDbF.tables().count());
     model->setHeaderData(0,Qt::Horizontal,"Table name", Qt::DisplayRole);
-    model->setHeaderData(1,Qt::Horizontal,"Type", Qt::DisplayRole);
 
     for(int i=0;i<testDbF.tables().count();++i)
     {
         model->setData(model->index(i,0),testDbF.tables().at(i));
-        model->setData(model->index(i,1),"BASE TABLE");
     }
     ui->tabFirstDB->setModel(model);
-    ui->tabFirstDB->resizeColumnsToContents();
-    ui->tabFirstDB->resizeRowsToContents();
-    ui->tabFirstDB->setColumnWidth(0,ui->tabFirstDB->width()-ui->tabFirstDB->columnWidth(1));
-    ui->tabFirstDB->horizontalHeader()->setSectionResizeMode(0,QHeaderView::Stretch);
+    ui->tabFirstDB->refresh();
     ui->tabFirstDB->setEditTriggers(QAbstractItemView::NoEditTriggers);
+
+    connect(ui->tabFirstDB,SIGNAL(pressed(QModelIndex)),ui->tabFirstDB,SLOT(makeDrag(QModelIndex)));
 }
 
 void Step2::checkTableS(int row)
@@ -111,20 +108,90 @@ void Step2::checkTableS(int row)
     }
 
     QStandardItemModel *model = new QStandardItemModel(ui->tabSecondDB);
-    model->insertColumns(0,2);
+    model->insertColumns(0,1);
     model->insertRows(0,testDbS.tables().count());
     model->setHeaderData(0,Qt::Horizontal,"Table name", Qt::DisplayRole);
-    model->setHeaderData(1,Qt::Horizontal,"Type", Qt::DisplayRole);
 
     for(int i=0;i<testDbS.tables().count();++i)
     {
         model->setData(model->index(i,0),testDbS.tables().at(i));
-        model->setData(model->index(i,1),"BASE TABLE");
     }
     ui->tabSecondDB->setModel(model);
-    ui->tabSecondDB->resizeColumnsToContents();
-    ui->tabSecondDB->resizeRowsToContents();
-    ui->tabSecondDB->setColumnWidth(0,ui->tabSecondDB->width()-ui->tabSecondDB->columnWidth(1));
-    ui->tabSecondDB->horizontalHeader()->setSectionResizeMode(0,QHeaderView::Stretch);
+    ui->tabSecondDB->refresh();
     ui->tabSecondDB->setEditTriggers(QAbstractItemView::NoEditTriggers);
+
+    connect(ui->tabSecondDB,SIGNAL(pressed(QModelIndex)),ui->tabSecondDB,SLOT(makeDrag(QModelIndex)));
+}
+/**********************************************************
+ **********************************************************
+ **********************************************************/
+
+TabView::TabView(QWidget *parent) :
+    QTableView(parent)
+{
+}
+
+TabView::~TabView()
+{
+}
+
+void TabView::refresh()
+{
+    this->resizeColumnsToContents();
+    this->resizeRowsToContents();
+    this->horizontalHeader()->setSectionResizeMode(0,QHeaderView::Stretch);
+}
+
+void TabView::makeDrag(QModelIndex index)
+{
+    QDrag *dr = new QDrag(this);
+    // The data to be transferred by the drag and drop operation is contained in a QMimeData object
+    QMimeData *data = new QMimeData;
+    if (this->objectName() == "tabFirstDB")
+        data->setData("mime/first-text",index.data().toByteArray());
+    if (this->objectName() == "tabSecondDB")
+        data->setData("mime/second-text",index.data().toByteArray());
+//    data->setText("This is a test");
+    dr->setMimeData(data);
+    dr->start();
+}
+
+void TabView::dropEvent(QDropEvent *de)
+{
+    // Unpack dropped data and handle it the way you want
+    QModelIndex index = this->indexAt(de->pos());
+    if(index.isValid())
+    {
+        this->model()->insertRow(index.row());
+        if(de->mimeData()->hasFormat("mime/second-text")) this->model()->setData(index,de->mimeData()->data("mime/second-text"));
+        if(de->mimeData()->hasFormat("mime/first-text")) this->model()->setData(index,de->mimeData()->data("mime/first-text"));
+        this->refresh();
+    }
+    else
+    {
+        this->model()->insertRow(this->model()->rowCount());
+        if(de->mimeData()->hasFormat("mime/second-text"))
+            this->model()->setData(this->model()->index(this->model()->rowCount()-1,0),\
+                                   de->mimeData()->data("mime/second-text"));
+        if(de->mimeData()->hasFormat("mime/first-text"))
+            this->model()->setData(this->model()->index(this->model()->rowCount()-1,0),\
+                                   de->mimeData()->data("mime/first-text"));
+        this->refresh();
+    }
+
+}
+
+void TabView::dragMoveEvent(QDragMoveEvent *de)
+{
+    // The event needs to be accepted here
+    de->accept();
+}
+
+void TabView::dragEnterEvent(QDragEnterEvent *event)
+{
+    // Set the drop action to be the proposed action.
+    if (event->mimeData()->hasFormat("mime/first-text") && this->objectName() == "tabSecondDB")
+             event->acceptProposedAction();
+    if (event->mimeData()->hasFormat("mime/second-text") && this->objectName() == "tabFirstDB")
+             event->acceptProposedAction();
 }
