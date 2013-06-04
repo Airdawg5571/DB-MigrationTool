@@ -24,12 +24,13 @@ public:
     
 private:
     Ui::Step2 *ui;
-    QSqlDatabase dbContainer, testDb;
+    QSqlDatabase dbContainer, testDbF, testDbS;
     EnhancedSqlTableModel *dbtFirstTab, *dbtSecondTab, *dbtCont;
 //    QSqlQueryModel *dbtCont1, *dbtCont2;
 
 private slots:
-    void checkTables(int row);
+    void checkTableF(int row);
+    void checkTableS(int row);
 
 };
 
