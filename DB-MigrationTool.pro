@@ -28,3 +28,6 @@ HEADERS  += mainwindow.h \
 FORMS    += mainwindow.ui \
     changedbs.ui \
     step2.ui
+
+RESOURCES += \
+    rc.qrc

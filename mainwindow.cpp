@@ -94,26 +94,26 @@ void MainWindow::refreshServers()
     ui->tabServers->resizeRowsToContents();
 }
 
-void MainWindow::enableButtons(QModelIndex index)
+void MainWindow::enableButtons(QModelIndex index)                                       //Enable buttons if there's a valid index
 {
     if(index.isValid())
     {
-        cellIndex = ui->tabServers->currentIndex();                                     // Save index first
+        cellIndex = ui->tabServers->currentIndex();                                     //Save index first
         ui->btnEdit->setEnabled(true);
         ui->btnRemove->setEnabled(true);
     }
 }
 
-void MainWindow::disableButtons()
+void MainWindow::disableButtons()                                                       //...Else disable them
 {
     ui->btnEdit->setEnabled(false);
     ui->btnRemove->setEnabled(false);
 }
 
-void MainWindow::serversContextMenu(const QPoint &pos)
+void MainWindow::serversContextMenu(const QPoint &pos)                                  //Context menu for the table
 {
     mnuServers = new QMenu();
-    cellIndex = ui->tabServers->indexAt(pos);                                           // Save index first
+    cellIndex = ui->tabServers->indexAt(pos);                                           //Save index first
     if(cellIndex.isValid())
     {
         mnuServers->addAction("Add new...", this, SLOT(addAction()));
@@ -121,12 +121,12 @@ void MainWindow::serversContextMenu(const QPoint &pos)
         mnuServers->addAction("Remove item",this,SLOT(removeAction()));
         mnuServers->addSeparator();
         mnuServers->addAction("Check connectivity",this,SLOT(checkAction()));
-        mnuServers->exec(ui->tabServers->mapToGlobal(pos));                             // Map menu
+        mnuServers->exec(ui->tabServers->mapToGlobal(pos));                             //Map menu
     }
 }
 
-void MainWindow::addAction()
-{
+void MainWindow::addAction()                                                            //"Add" action for button and context-menu
+{                                                                                       // ^- self explanatory
     indexToBeEdited = "0";
     adddbs = new ChangeDBs();
     if(adddbs->exec() != ChangeDBs::Accepted)
@@ -170,7 +170,7 @@ void MainWindow::addAction()
     this->refreshServers();
 }
 
-void MainWindow::editAction()
+void MainWindow::editAction()                                                           //Same as "Add" but with prefilled form
 {
     editdbs = new ChangeDBs(this);
     editdbs->setWindowTitle("Edit database...");
@@ -202,14 +202,15 @@ void MainWindow::editAction()
     this->refreshServers();
 }
 
-void MainWindow::removeAction()
+void MainWindow::removeAction()                                                         //DROP
 {
     this->dbContModel->removeRow(cellIndex.row());
     this->dbContModel->select();
 }
 
-void MainWindow::checkAction()
+void MainWindow::checkAction()                                                          //Check status of selected server
 {
+    //Define a database with credentials from the table
     testDb = QSqlDatabase::addDatabase(dbContModel->index(cellIndex.row(),3).data().toString(),"tests");
     testDb.setDatabaseName(dbContModel->index(cellIndex.row(),2).data().toString());
     if(!dbContModel->index(cellIndex.row(),4).data().toString().isEmpty())              //Man-mode a.k.a manual DSN definition
@@ -220,8 +221,9 @@ void MainWindow::checkAction()
     testDb.setPassword(dbContModel->index(cellIndex.row(),6).data().toString());
     testDb.setHostName(dbContModel->index(cellIndex.row(),7).data().toString());
     testDb.setPort(dbContModel->index(cellIndex.row(),8).data().toInt());
+    qDebug()<<testDb.databaseName();
 
-
+    //Checkup
     if(testDb.open())
         dbContModel->setData(dbContModel->index(cellIndex.row(),9),"ALIVE");
     else
@@ -234,7 +236,7 @@ void MainWindow::checkAction()
     this->refreshServers();
 }
 
-void MainWindow::checkAll()
+void MainWindow::checkAll()                                                             //Above function for all entries
 {
     for(int i=0;i<dbContModel->rowCount();i++)
     {
@@ -243,9 +245,9 @@ void MainWindow::checkAll()
     }
 }
 
-void MainWindow::nextStep()
+void MainWindow::nextStep()                                                             //Open the next step, destroy this one.
 {
     Step2 *secondStep = new Step2(NULL);
     secondStep->show();
-    this->hide();
+    this->close();
 }

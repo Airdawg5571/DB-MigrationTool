@@ -36,7 +36,7 @@ private:
     ChangeDBs *editdbs, *adddbs;
     QMenu *mnuServers;
     QModelIndex cellIndex;
-    QString indexToBeEdited = 0;
+    QString indexToBeEdited = "0";
 
 private slots:
     void enableButtons(QModelIndex index);

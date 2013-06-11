@@ -1,0 +1,7 @@
+<RCC>
+    <qresource prefix="/Images">
+        <file alias="mainIcon">res/images/1370959984_credit-cards_basic_blue.png</file>
+        <file alias="arrowF">res/images/1370960007_navigation-right_basic_blue.png</file>
+        <file alias="arrowB">res/images/1370960051_navigation-left_basic_blue.png</file>
+    </qresource>
+</RCC>

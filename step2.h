@@ -5,11 +5,16 @@
 #include <QDesktopWidget>
 #include <QMessageBox>
 #include <QTableView>
+#include <QMenu>
+#include <QWidget>
+#include <QLayout>
+
 #include <QtCore>
 #include <QtGui>
 #include <QtSql>
 
 #include "enhancedsqltablemodel.h"
+#include "mainwindow.h"
 
 namespace Ui {
 class Step2;
@@ -24,16 +29,34 @@ public:
     ~Step2();
     
 private:
+    QString dbContextSource;
+    QModelIndex cellIndex;
     Ui::Step2 *ui;
-    QSqlDatabase dbContainer, testDbF, testDbS;
-    EnhancedSqlTableModel *dbtFirstTab, *dbtSecondTab, *dbtCont;
-//    QSqlQueryModel *dbtCont1, *dbtCont2;
+    QSqlDatabase dbContainer, testDb, dbF, dbS;
+    QSqlQuery dbQueryF, dbQueryS;
+    QSqlTableModel *dbtCont;
+
+    int oldRow;
 
 private slots:
-    void checkTableF(int row);
-    void checkTableS(int row);
+    void checkTable(int row);
+    void dbTableMove(QString table, QString source);
+
+    void dbContext(const QPoint &pos);
+
+    void removeTableAction();
+    void viewTableAction();
+
+    void closeAction();
+
+signals:
+    void clicked();
 
 };
+
+/**********************************************************************************
+ ***TABVIEW************************************************************************
+ **********************************************************************************/
 
 class TabView : public QTableView
 {
@@ -44,13 +67,17 @@ public:
     ~TabView();
 
     void refresh();
-private slots:
-    void makeDrag(QModelIndex index);
+signals:
+    void dbTableMoved(QString table, QString dest);
 
 protected:
+    void mousePressEvent(QMouseEvent *event);
+    void mouseMoveEvent(QMouseEvent *event);
     void dropEvent(QDropEvent *de);
     void dragMoveEvent(QDragMoveEvent *de);
     void dragEnterEvent(QDragEnterEvent *event);
+
+    QPoint dragStartPosition;
 };
 
 #endif // STEP2_H

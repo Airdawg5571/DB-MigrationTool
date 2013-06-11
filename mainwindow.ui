@@ -37,6 +37,10 @@
   <property name="windowTitle">
    <string>DB-MigrationTool - Step 1 - Manage Databases</string>
   </property>
+  <property name="windowIcon">
+   <iconset resource="rc.qrc">
+    <normaloff>:/Images/mainIcon</normaloff>:/Images/mainIcon</iconset>
+  </property>
   <widget class="QWidget" name="centralWidget">
    <layout class="QVBoxLayout" name="verticalLayout">
     <property name="bottomMargin">
@@ -239,6 +243,19 @@
         <property name="text">
          <string>Next Step</string>
         </property>
+        <property name="icon">
+         <iconset resource="rc.qrc">
+          <normaloff>:/Images/arrowF</normaloff>:/Images/arrowF</iconset>
+        </property>
+        <property name="iconSize">
+         <size>
+          <width>20</width>
+          <height>20</height>
+         </size>
+        </property>
+        <property name="shortcut">
+         <string>Ctrl+S, Ctrl+W</string>
+        </property>
        </widget>
       </item>
      </layout>
@@ -267,6 +284,8 @@
   <tabstop>cmdNextStep</tabstop>
   <tabstop>tabServers</tabstop>
  </tabstops>
- <resources/>
+ <resources>
+  <include location="rc.qrc"/>
+ </resources>
  <connections/>
 </ui>

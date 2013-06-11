@@ -31,6 +31,10 @@
   <property name="windowTitle">
    <string>Add Database</string>
   </property>
+  <property name="windowIcon">
+   <iconset resource="rc.qrc">
+    <normaloff>:/Images/mainIcon</normaloff>:/Images/mainIcon</iconset>
+  </property>
   <property name="modal">
    <bool>true</bool>
   </property>
@@ -225,6 +229,8 @@
   <tabstop>btnCancel</tabstop>
   <tabstop>btnClear</tabstop>
  </tabstops>
- <resources/>
+ <resources>
+  <include location="rc.qrc"/>
+ </resources>
  <connections/>
 </ui>

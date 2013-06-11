@@ -25,12 +25,16 @@
   <property name="windowTitle">
    <string>DB-MigrationTool - Step 2 - Compare and Migrate</string>
   </property>
+  <property name="windowIcon">
+   <iconset resource="rc.qrc">
+    <normaloff>:/Images/mainIcon</normaloff>:/Images/mainIcon</iconset>
+  </property>
   <widget class="QWidget" name="centralwidget">
    <widget class="QComboBox" name="cmbFirstDB">
     <property name="geometry">
      <rect>
       <x>30</x>
-      <y>40</y>
+      <y>60</y>
       <width>301</width>
       <height>25</height>
      </rect>
@@ -43,7 +47,7 @@
     <property name="geometry">
      <rect>
       <x>370</x>
-      <y>40</y>
+      <y>60</y>
       <width>301</width>
       <height>25</height>
      </rect>
@@ -53,10 +57,13 @@
     <property name="geometry">
      <rect>
       <x>30</x>
-      <y>80</y>
+      <y>100</y>
       <width>301</width>
-      <height>311</height>
+      <height>291</height>
      </rect>
+    </property>
+    <property name="contextMenuPolicy">
+     <enum>Qt::CustomContextMenu</enum>
     </property>
     <property name="editTriggers">
      <set>QAbstractItemView::NoEditTriggers</set>
@@ -97,7 +104,7 @@
     <property name="geometry">
      <rect>
       <x>30</x>
-      <y>20</y>
+      <y>40</y>
       <width>71</width>
       <height>16</height>
      </rect>
@@ -105,12 +112,15 @@
     <property name="text">
      <string>Database 1</string>
     </property>
+    <property name="buddy">
+     <cstring>cmbFirstDB</cstring>
+    </property>
    </widget>
    <widget class="QLabel" name="label_2">
     <property name="geometry">
      <rect>
       <x>370</x>
-      <y>20</y>
+      <y>40</y>
       <width>71</width>
       <height>16</height>
      </rect>
@@ -118,15 +128,21 @@
     <property name="text">
      <string>Database 2</string>
     </property>
+    <property name="buddy">
+     <cstring>cmbSecondDB</cstring>
+    </property>
    </widget>
    <widget class="TabView" name="tabSecondDB">
     <property name="geometry">
      <rect>
       <x>370</x>
-      <y>80</y>
+      <y>100</y>
       <width>301</width>
-      <height>311</height>
+      <height>291</height>
      </rect>
+    </property>
+    <property name="contextMenuPolicy">
+     <enum>Qt::CustomContextMenu</enum>
     </property>
     <property name="editTriggers">
      <set>QAbstractItemView::NoEditTriggers</set>
@@ -150,6 +166,36 @@
      <enum>QAbstractItemView::SelectRows</enum>
     </property>
    </widget>
+   <widget class="QLabel" name="lblHeader">
+    <property name="geometry">
+     <rect>
+      <x>30</x>
+      <y>20</y>
+      <width>641</width>
+      <height>16</height>
+     </rect>
+    </property>
+    <property name="text">
+     <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=&quot; font-weight:600; font-style:italic;&quot;&gt;Please select working databases.&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+    </property>
+   </widget>
+   <widget class="QCommandLinkButton" name="cmdPrev">
+    <property name="geometry">
+     <rect>
+      <x>30</x>
+      <y>410</y>
+      <width>172</width>
+      <height>41</height>
+     </rect>
+    </property>
+    <property name="text">
+     <string>Previous step</string>
+    </property>
+    <property name="icon">
+     <iconset resource="rc.qrc">
+      <normaloff>:/Images/arrowB</normaloff>:/Images/arrowB</iconset>
+    </property>
+   </widget>
   </widget>
   <widget class="QStatusBar" name="statusBar"/>
  </widget>
@@ -160,6 +206,8 @@
    <header location="global">step2.h</header>
   </customwidget>
  </customwidgets>
- <resources/>
+ <resources>
+  <include location="rc.qrc"/>
+ </resources>
  <connections/>
 </ui>
