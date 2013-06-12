@@ -9,6 +9,8 @@ class EnhancedSqlTableModel : public QSqlTableModel
 public:
     explicit EnhancedSqlTableModel(QObject *parent = 0);
     
+    QVariantList getValuesAt(int row, std::initializer_list<int> colIndices);
+
     Qt::ItemFlags flags(const QModelIndex &index) const;
 signals:
     

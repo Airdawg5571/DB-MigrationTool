@@ -8,6 +8,15 @@ EnhancedSqlTableModel::EnhancedSqlTableModel(QObject *parent) :
 {   
 }
 
+QVariantList EnhancedSqlTableModel::getValuesAt(int row, std::initializer_list<int> colIndices)
+{
+    QVariantList result;
+    result.reserve(args.size());
+    for (int col: args)
+        result.append(index(row, col).data());
+    return result;
+}
+
 //Set STATUS column as not editable
 Qt::ItemFlags EnhancedSqlTableModel::flags(const QModelIndex &index) const
 {
