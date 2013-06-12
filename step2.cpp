@@ -181,6 +181,34 @@ void Step2::dbTableMove(QString table, QString source)
         qDebug()<<"[des2]"+destQuery.lastError().text();
         return;
     }
+
+    //Repopulate transferred table
+    if(!srcQuery.exec("SELECT * FROM "+table))
+    {
+        qDebug()<<"[scr-cpy]"+srcQuery.lastError().text();
+        return;
+    }
+
+    while(srcQuery.next())
+    {
+        QSqlRecord record = srcQuery.record();
+        QStringList names;
+        QStringList values;
+
+        for (int i = 0; i < record.count(); ++i)
+        {
+            names << record.fieldName(i);
+            values << "\""+record.value(i).toString()+"\"";
+        }
+
+        //Build new query
+        QString queryStr;
+        queryStr.append("INSERT INTO " + table);
+        queryStr.append(" (" + names.join(", ") + ") ");
+        queryStr.append(" VALUES (" + values.join(", ") + ");");
+
+        destQuery.exec(queryStr);
+    }
 }
 
 void Step2::dbContext(const QPoint &pos)                                                //Context-menu definition for tables
