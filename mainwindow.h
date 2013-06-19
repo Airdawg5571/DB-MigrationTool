@@ -29,14 +29,11 @@ public slots:
     void refreshServers();
     
 private:
-    QSqlDatabase dbContainer, testDb;
-    QSqlQuery *dbContQuery;
-    EnhancedSqlTableModel *dbContModel;
+    QSqlQuery *m_dbContQuery;
+    EnhancedSqlTableModel *m_dbContModel;
     Ui::MainWindow *ui;
-    ChangeDBs *editdbs, *adddbs;
-    QMenu *mnuServers;
-    QModelIndex cellIndex;
-    QString indexToBeEdited = "0";
+    QModelIndex m_cellIndex;
+    QString m_indexToBeEdited;
 
 private slots:
     void enableButtons(QModelIndex index);

@@ -2,13 +2,15 @@
 #include "ui_changedbs.h"
 #include <QDebug>
 
-ChangeDBs::ChangeDBs(QWidget *parent) :
+ChangeDbs::ChangeDbs(QWidget *parent) :
     QDialog(parent),
     ui(new Ui::ChangeDBs)
 {
     ui->setupUi(this);
-    drivers = QSqlDatabase::drivers();
-    odbcDrivers = QSettings("HKEY_LOCAL_MACHINE\\SOFTWARE\\ODBC\\ODBCINST.INI\\ODBC Drivers",QSettings::NativeFormat).childKeys();
+    QStringList drivers = QSqlDatabase::drivers();
+    QStringList odbcDrivers = QSettings("HKEY_LOCAL_MACHINE\\"
+                                        "SOFTWARE\\ODBC\\ODBCINST.INI\\ODBC Drivers",
+                                        QSettings::NativeFormat).childKeys();
 
     //Unimplemented QtSql drivers - no plugins
     drivers.removeAll("QMYSQL3");
@@ -46,23 +48,24 @@ ChangeDBs::ChangeDBs(QWidget *parent) :
     ui->chkDSN->setChecked(true);                                                       //Check it so you can uncheck it 15 lines below :|
 
     //Customize fields for each driver type
-    if(ui->cmbDriver->currentText() == "QODBC") this->setupLayout("QODBC");             //One-item-only workaround
+    if(ui->cmbDriver->currentText() == "QODBC")
+        this->setupLayout("QODBC");                                                     //One-item-only workaround
     connect(ui->cmbDriver,\
             SIGNAL(currentIndexChanged(QString)),\
             this,\
             SLOT(setupLayout(QString)));
 
     //Buttons
-    connect(ui->btnClear,SIGNAL(clicked()),this,SLOT(clearAction()));
-    connect(ui->btnOk,SIGNAL(clicked()),this,SLOT(okAction()));
-    connect(ui->btnCancel,SIGNAL(clicked()),this,SLOT(reject()));
-    connect(ui->btnTest,SIGNAL(clicked()),this,SLOT(testAction()));
+    connect(ui->btnClear, SIGNAL(clicked()), SLOT(clearAction()));
+    connect(ui->btnOk, SIGNAL(clicked()), SLOT(okAction()));
+    connect(ui->btnCancel, SIGNAL(clicked()), SLOT(reject()));
+    connect(ui->btnTest, SIGNAL(clicked()), SLOT(testAction()));
 
-    connect(ui->chkDSN,SIGNAL(toggled(bool)),SLOT(overrideDSN(bool)));
+    connect(ui->chkDSN, SIGNAL(toggled(bool)), SLOT(overrideDSN(bool)));
     ui->chkDSN->setChecked(false);
 }
 
-ChangeDBs::~ChangeDBs()
+ChangeDbs::~ChangeDbs()
 {
     delete ui;
 }
@@ -70,44 +73,45 @@ ChangeDBs::~ChangeDBs()
 
 //Getters
 
-QString ChangeDBs::name() const
+QString ChangeDbs::name() const
 {
     return this->ui->lnName->text();
 }
 
-QString ChangeDBs::dbName() const
+QString ChangeDbs::dbName() const
 {
     return this->ui->lnDbName->text();
 }
 
-QString ChangeDBs::userName() const
+QString ChangeDbs::userName() const
 {
     return this->ui->lnUsername->text();
 }
 
-QString ChangeDBs::password() const
+QString ChangeDbs::password() const
 {
     QByteArray getBytes(this->ui->lnPassword->text().toUtf8(), this->ui->lnPassword->text().size());
     return QString(getBytes.toBase64());
 }
 
-QString ChangeDBs::hostName() const
+QString ChangeDbs::hostName() const
 {
     return this->ui->lnHostname->text();
 }
 
-QString ChangeDBs::driver() const
+QString ChangeDbs::driver() const
 {
     return this->ui->cmbDriver->currentText();
 }
 
-QString ChangeDBs::options() const
+QString ChangeDbs::options() const
 {
-    if (ui->chkDSN->isChecked()) return this->ui->cmbODBC->currentText();
+    if (ui->chkDSN->isChecked())
+        return this->ui->cmbODBC->currentText();
     else return QString("");
 }
 
-QString ChangeDBs::port() const
+QString ChangeDbs::port() const
 {
     return this->ui->lnPort->text();
 }
@@ -115,48 +119,48 @@ QString ChangeDBs::port() const
 
 //Setters
 
-void ChangeDBs::setName(QString name)
+void ChangeDbs::setName(QString name)
 {
     this->ui->lnName->setText(name);
 }
 
-void ChangeDBs::setDbName(QString dbName)
+void ChangeDbs::setDbName(QString dbName)
 {
     this->ui->lnDbName->setText(dbName);
 }
 
-void ChangeDBs::setUserName(QString userName)
+void ChangeDbs::setUserName(QString userName)
 {
     this->ui->lnUsername->setText(userName);
 }
 
-void ChangeDBs::setPassword(QString password)
+void ChangeDbs::setPassword(QString password)
 {
     QByteArray setBytes(password.toUtf8(), password.size());
     this->ui->lnPassword->setText(QString(QByteArray::fromBase64(setBytes)));
 }
 
-void ChangeDBs::setHostName(QString hostName)
+void ChangeDbs::setHostName(QString hostName)
 {
     this->ui->lnHostname->setText(hostName);
 }
 
-void ChangeDBs::setDriver(QString driver)
+void ChangeDbs::setDriver(QString driver)
 {
     this->ui->cmbDriver->setCurrentText(driver);
 }
 
-void ChangeDBs::setOptions(QString option)
+void ChangeDbs::setOptions(QString option)
 {
     this->ui->cmbODBC->setCurrentText(option);
 }
 
-void ChangeDBs::setPort(QString port)
+void ChangeDbs::setPort(QString port)
 {
     this->ui->lnPort->setText(port);
 }
 
-void ChangeDBs::clearAction()
+void ChangeDbs::clearAction()
 {
     this->ui->cmbDriver->setCurrentIndex(0);
     this->ui->lnName->setText("");
@@ -167,38 +171,35 @@ void ChangeDBs::clearAction()
     this->ui->lnPort->setText("");
 }
 
-void ChangeDBs::okAction()
+void ChangeDbs::okAction()
 {
     //TODO: Add validation and sanitize input
     accept();
 }
 
-void ChangeDBs::testAction()
+void ChangeDbs::testAction()
 {
-    testDb = QSqlDatabase::addDatabase(driver(),"tests-chdb");
+    QSqlDatabase testDb = QSqlDatabase::addDatabase(driver(),"tests-chdb");
     testDb.setDatabaseName(dbName());
     if(ui->chkDSN->isChecked())                                                        //Man-mode a.k.a manual DSN definition
-        testDb.setDatabaseName("Driver={"\
-                               +options()+"};DATABASE="\
-                               +dbName()+";");
+        testDb.setDatabaseName(QString("Driver={%1};DATABASE=%2;").arg(options(), dbName()));
     testDb.setUserName(userName());
     testDb.setPassword(password());
     testDb.setHostName(hostName());
     testDb.setPort(port().toInt());
 
 
-    if(testDb.open())
+    if (testDb.open())
         QMessageBox::information(this,"ALIVE","Connection successful!");
     else
-        QMessageBox::warning(this,"DEAD","Connection failed with message:\n\n"+testDb.lastError().text());
+        QMessageBox::warning(this,"DEAD",QString("Connection failed with message:\n\n%1").arg(testDb.lastError().text()));
     testDb.close();
     testDb.removeDatabase("tests-chdb");
 }
 
-void ChangeDBs::setupLayout(QString driver)
+void ChangeDbs::setupLayout(QString driver)
 {
-    if (driver == "QODBC")
-    {
+    if (driver == QStringLiteral("QODBC")) {
         ui->lnUsername->setPlaceholderText("Username");
         ui->lnPassword->setPlaceholderText("Password");
         ui->lnDbName->setPlaceholderText("DSN name");
@@ -207,10 +208,9 @@ void ChangeDBs::setupLayout(QString driver)
     }
 }
 
-void ChangeDBs::overrideDSN(bool ovr)                                                   //Hide/show options already in DSN
+void ChangeDbs::overrideDSN(bool ovr)                                                   //Hide/show options already in DSN
 {
-    if(ovr)
-    {
+    if(ovr) {
         ui->chkDSN->setChecked(true);
         ui->lnDbName->setPlaceholderText("Database name");
         ui->cmbODBC->show();
@@ -218,9 +218,7 @@ void ChangeDBs::overrideDSN(bool ovr)                                           
         ui->lnPort->show();
         ui->lnUsername->show();
         ui->lnPassword->show();
-    }
-    else
-    {
+    } else {
         ui->lnDbName->setPlaceholderText("Data source name (DSN)");
         ui->cmbODBC->hide();
         ui->lnHostname->hide();

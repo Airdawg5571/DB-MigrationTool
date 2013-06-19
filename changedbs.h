@@ -11,17 +11,13 @@ namespace Ui {
 class ChangeDBs;
 }
 
-class ChangeDBs : public QDialog
+class ChangeDbs : public QDialog
 {
     Q_OBJECT
     
 public:
-    explicit ChangeDBs(QWidget *parent = 0);
-    ~ChangeDBs();
-
-    QStringList drivers;
-    QStringList odbcDrivers;
-    QSqlDatabase testDb;
+    explicit ChangeDbs(QWidget *parent = 0);
+    ~ChangeDbs();
 
     QString name() const;
     QString dbName() const;

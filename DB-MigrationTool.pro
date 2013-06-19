@@ -6,6 +6,8 @@
 
 QT       += core gui sql
 
+CONFIG  += c++11
+
 greaterThan(QT_MAJOR_VERSION, 4): QT += widgets
 
 TARGET = DB-MigrationTool
@@ -17,13 +19,15 @@ SOURCES += main.cpp\
     enhancedsqltablemodel.cpp \
     changedbs.cpp \
     dbtableview.cpp \
-    step2.cpp
+    step2.cpp \
+    tabview.cpp
 
 HEADERS  += mainwindow.h \
     enhancedsqltablemodel.h \
     changedbs.h \
     dbtableview.h \
-    step2.h
+    step2.h \
+    tabview.h
 
 FORMS    += mainwindow.ui \
     changedbs.ui \

@@ -8,7 +8,8 @@ DBTableView::DBTableView(QWidget *parent) :
 // Enable deselection for table
 void DBTableView::mousePressEvent(QMouseEvent *event)
 {
-   if (event->button()==Qt::LeftButton && !(this->indexAt(event->pos()).isValid()))
+    if ((event->button()==Qt::LeftButton)
+            && !(this->indexAt(event->pos()).isValid()))
    {
        this->clearSelection();
        emit selectionCleared();
