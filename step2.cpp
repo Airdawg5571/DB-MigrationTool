@@ -61,6 +61,10 @@ void Step2::checkTable(int row)
     if(row == -1)
         row=m_oldRow;
 
+    //Change note on top.
+    if ((ui->cmbFirstDB->currentIndex() >= 0) && ui->cmbSecondDB->currentIndex() >= 0)
+        ui->lblHeader->setText("");
+
     //Check the signal sender
     TabView *table = ui->tabFirstDB;
     if(sender()->objectName() == "cmbSecondDB")
@@ -140,13 +144,23 @@ void Step2::checkTable(int row)
 void Step2::dbTableMove(QString table, QString source)
 {
     //Who's calling this?
-    QSqlQuery srcQuery = QSqlQuery(m_dbQueryS);
-    QSqlQuery destQuery = QSqlQuery(m_dbQueryF);
+    QSqlQuery srcQuery;
+    QSqlQuery destQuery;
+    QSqlDatabase destDb;                                                                //For using transaction and commit
+
+    if (source == SECOND) {
+        srcQuery = QSqlQuery(m_dbQueryS);
+        destQuery = QSqlQuery(m_dbQueryF);
+        destDb = QSqlDatabase(m_dbF);
+    }
+
     if (source == FIRST) {
         srcQuery = QSqlQuery(m_dbQueryF);
         destQuery = QSqlQuery(m_dbQueryS);
+        destDb = QSqlDatabase(m_dbS);
     }
 
+    destQuery = QSqlQuery(destDb);
     // Get table data via INFO SCHEMA - compatible with MySQL and SQL Server (and more maybe)
     //  !!!!!!!!!!! TODO: ADD AUTO-INCREMENT AND ISNULL
     if (!srcQuery.exec(QString("SELECT COLUMN_NAME, COLUMN_TYPE, "
@@ -176,24 +190,28 @@ void Step2::dbTableMove(QString table, QString source)
     if (!destQuery.exec(tableCreateStr))
         return;
 
-    //Repopulate transferred table
-    if (!srcQuery.exec(QString("SELECT * FROM %1").arg(table)))
-        return;
+    //Repopulate transferred table if we may copy contents
+    if (!ui->chkCopyWithoutContents->isChecked()) {
+        if (!srcQuery.exec(QString("SELECT * FROM %1").arg(table)))
+            return;
 
-    while (srcQuery.next()) {
-        QSqlRecord record = srcQuery.record();
-        QStringList names;
-        QStringList values;
+        destDb.transaction();                                                           // Near-lightspeed transaction
+        while (srcQuery.next()) {
+            QSqlRecord record = srcQuery.record();
+            QStringList names;
+            QStringList values;
 
-        for (int i = 0; i < record.count(); ++i) {
-            names << record.fieldName(i);
-            values << QString("\"%1\"").arg(record.value(i).toString());
+            for (int i = 0; i < record.count(); ++i) {
+                names << record.fieldName(i);
+                values << QString("\"%1\"").arg(record.value(i).toString());
+            }
+
+            //Build new query
+            QString queryStr;
+            queryStr.append(QString("INSERT INTO %1 (%2) VALUES (%3)").arg(table, names.join(", "), values.join(", ")));
+            destQuery.exec(queryStr);
         }
-
-        //Build new query
-        QString queryStr;
-        queryStr.append(QString("INSERT INTO %1 (%2) VALUES (%3);").arg(table, names.join(", "), values.join(", ")));
-        destQuery.exec(queryStr);
+        destDb.commit();
     }
 }
 
@@ -248,17 +266,16 @@ void Step2::viewTableAction()                                                   
 
     QTableView *table = new QTableView;
     QLabel *label = new QLabel("Table is editable. Press <b>F2</b> or <b>double-click</b> cell to edit.");
-    QPushButton *btnOk = new QPushButton("&OK");
+    QPushButton *btnOk = new QPushButton("&Close");
 
-    QHBoxLayout *lowerwrap = new QHBoxLayout();
+    QHBoxLayout *upperwrap = new QHBoxLayout();
     QVBoxLayout *center = new QVBoxLayout();
     viewTable->setLayout(center);
-    center->addWidget(label);
+    upperwrap->addWidget(btnOk);
+    upperwrap->addWidget(label);
+    upperwrap->addStretch();
+    center->addLayout(upperwrap);
     center->addWidget(table);
-    center->addLayout(lowerwrap);
-    lowerwrap->addStretch();
-    lowerwrap->addWidget(btnOk);
-
     QSqlTableModel *model = new QSqlTableModel(this,m_dbF);
 
     //Wrong model? Oops. Sorry, will redefine. (There's no other way to change the db it's connecting to)

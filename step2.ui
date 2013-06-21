@@ -171,7 +171,7 @@
      <rect>
       <x>30</x>
       <y>20</y>
-      <width>641</width>
+      <width>511</width>
       <height>16</height>
      </rect>
     </property>
@@ -194,6 +194,19 @@
     <property name="icon">
      <iconset resource="rc.qrc">
       <normaloff>:/Images/arrowB</normaloff>:/Images/arrowB</iconset>
+    </property>
+   </widget>
+   <widget class="QCheckBox" name="chkCopyWithoutContents">
+    <property name="geometry">
+     <rect>
+      <x>545</x>
+      <y>20</y>
+      <width>130</width>
+      <height>20</height>
+     </rect>
+    </property>
+    <property name="text">
+     <string>Drag without contents</string>
     </property>
    </widget>
   </widget>

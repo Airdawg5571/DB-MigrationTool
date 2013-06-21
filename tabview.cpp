@@ -49,10 +49,14 @@ void TabView::dropEvent(QDropEvent *de)
     QModelIndex index = this->indexAt(de->pos());
     if (index.isValid()) {
         this->model()->insertRow(index.row());
-        if (de->mimeData()->hasFormat(QStringLiteral("text/second-text")))
+        if (de->mimeData()->hasFormat(QStringLiteral("text/second-text"))) {
             this->model()->setData(index,de->mimeData()->data(QStringLiteral("text/second-text")));
-        if (de->mimeData()->hasFormat(QStringLiteral("text/first-text")))
+            emit dbTableMoved(de->mimeData()->data(QStringLiteral("text/second-text")),SECOND);
+        }
+        if (de->mimeData()->hasFormat(QStringLiteral("text/first-text"))) {
             this->model()->setData(index,de->mimeData()->data(QStringLiteral("text/first-text")));
+            emit dbTableMoved(de->mimeData()->data(QStringLiteral("text/first-text")),FIRST);
+        }
         this->refresh();
     }
     else{

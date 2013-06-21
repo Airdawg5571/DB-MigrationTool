@@ -7,8 +7,10 @@
 #include <QtCore>
 #include <QtGui>
 
-#define FIRST QStringLiteral("F")
-#define SECOND QStringLiteral("S")
+#include <QDebug>
+
+#define FIRST "F"
+#define SECOND "S"
 
 class TabView : public QTableView
 {

@@ -147,8 +147,6 @@ void MainWindow::addAction()                                                    
     m_dbContQuery->addBindValue(adddbs->port());
 
     m_dbContQuery->exec();
-    qDebug() << m_dbContQuery->lastQuery();
-    qDebug() << m_dbContQuery->lastError().text();
     this->refreshServers();
 }
 
@@ -195,8 +193,6 @@ void MainWindow::editAction()                                                   
     m_dbContQuery->addBindValue(m_indexToBeEdited);
 
     m_dbContQuery->exec();
-    qDebug() << m_dbContQuery->lastQuery();
-    qDebug() << m_dbContQuery->lastError().text();
     this->refreshServers();
 }
 
@@ -220,14 +216,13 @@ void MainWindow::checkAction()                                                  
     testDb.setPassword(m_dbContModel->index(row,6).data().toString());
     testDb.setHostName(m_dbContModel->index(row,7).data().toString());
     testDb.setPort(m_dbContModel->index(row,8).data().toInt());
-    qDebug()<<testDb.databaseName();
 
     //Checkup
     if(testDb.open())
         m_dbContModel->setData(m_dbContModel->index(row, 9),QStringLiteral("ALIVE"));
     else {
         m_dbContModel->setData(m_dbContModel->index(row, 9),QStringLiteral("DEAD"));
-        QMessageBox::warning(this, "DEAD", QString("Connection failed with message:\n\n").arg(testDb.lastError().text()));
+        QMessageBox::warning(this, "DEAD", QString("Connection failed with message:\n\n%1").arg(testDb.lastError().text()));
     }
     testDb.close();
     testDb.removeDatabase("tests");
