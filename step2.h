@@ -49,7 +49,9 @@ private slots:
     void removeTableAction();
     void viewTableAction();
 
+    void compareTablesAction();
     void closeAction();
+
 
 signals:
 //    void clicked();

@@ -47,6 +47,9 @@ Step2::Step2(QWidget *parent) :
 
     //Back button
     connect(this->ui->cmdPrev, SIGNAL(clicked()), SLOT(closeAction()));
+
+    //Compare button
+    connect(this->ui->btnCompare, SIGNAL(clicked()), SLOT(compareTablesAction()));
 }
 
 Step2::~Step2()
@@ -128,6 +131,7 @@ void Step2::checkTable(int row)
     model->insertColumns(0, 1);
     model->insertRows(0, m_testDb.tables().count());
     model->setHeaderData(0,Qt::Horizontal, "Table name", Qt::DisplayRole);
+//    model->setData(model->index(0,0),qVariantFromValue(QFont(QFont().defaultFamily(),-1,75)),Qt::FontRole);
 
     // ...and populate
     for (int i=0;i<m_testDb.tables().count();++i)
@@ -136,6 +140,7 @@ void Step2::checkTable(int row)
     table->setModel(model);
     table->refresh();
     table->setEditTriggers(QAbstractItemView::NoEditTriggers);
+
 
     //Drag-and-drop connection
     connect(table,SIGNAL(dbTableMoved(QString,QString)),SLOT(dbTableMove(QString,QString)));
@@ -291,6 +296,54 @@ void Step2::viewTableAction()                                                   
     table->resizeRowsToContents();
     connect(btnOk, SIGNAL(clicked()), viewTable, SLOT(close()));                        //Destroy button
     viewTable->show();
+}
+
+void Step2::compareTablesAction()
+{
+    //Keep tab on who has what
+    int countF = ui->tabFirstDB->model()->rowCount();
+    int countS = ui->tabSecondDB->model()->rowCount();
+
+    //Keep all table names into string lists
+    QStringList listF;
+    QStringList listS;
+    QStringList commonList;
+
+    for (int i = 0; i < countF; i++)
+        listF << ui->tabFirstDB->model()->index(i,0).data().toString();
+
+    for (int i = 0; i < countS; i++)
+        listS << ui->tabSecondDB->model()->index(i,0).data().toString();
+
+    //Keep them neat
+    qSort(listF);
+    qSort(listS);
+
+    //Comparison
+    for (int i = 0; i < countF; i++)
+        for (int j = 0; j < countS; j++)
+            if (listF.at(i) == listS.at(j))
+                commonList << listF.at(i);
+
+    //Remove common tables (for marking)
+    foreach (QString str, commonList) {
+        listF.removeAll(str);
+        listS.removeAll(str);
+    }
+
+    //Marking
+    for (int i = 0; i < countF; i++)
+        if (listF.contains(ui->tabFirstDB->model()->index(i,0).data().toString())) {
+            ui->tabFirstDB->model()->setData(ui->tabFirstDB->model()->index(i,0),qVariantFromValue(QFont(QFont().defaultFamily(),-1,75)),Qt::FontRole);
+            ui->tabFirstDB->model()->setData(ui->tabFirstDB->model()->index(i,0),qVariantFromValue(QColor(Qt::red)),Qt::TextColorRole);
+        }
+
+    for (int i = 0; i < countS; i++)
+        if (listS.contains(ui->tabSecondDB->model()->index(i,0).data().toString())) {
+            ui->tabSecondDB->model()->setData(ui->tabSecondDB->model()->index(i,0),qVariantFromValue(QFont(QFont().defaultFamily(),-1,75)),Qt::FontRole);
+            ui->tabSecondDB->model()->setData(ui->tabSecondDB->model()->index(i,0),qVariantFromValue(QColor(Qt::red)),Qt::TextColorRole);
+        }
+
 }
 
 void Step2::closeAction()
