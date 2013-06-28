@@ -34,7 +34,7 @@
     <property name="geometry">
      <rect>
       <x>30</x>
-      <y>60</y>
+      <y>70</y>
       <width>301</width>
       <height>25</height>
      </rect>
@@ -47,7 +47,7 @@
     <property name="geometry">
      <rect>
       <x>370</x>
-      <y>60</y>
+      <y>70</y>
       <width>301</width>
       <height>25</height>
      </rect>
@@ -57,7 +57,7 @@
     <property name="geometry">
      <rect>
       <x>30</x>
-      <y>100</y>
+      <y>110</y>
       <width>301</width>
       <height>291</height>
      </rect>
@@ -87,24 +87,11 @@
      <enum>QAbstractItemView::SelectRows</enum>
     </property>
    </widget>
-   <widget class="QPushButton" name="btnCompare">
-    <property name="geometry">
-     <rect>
-      <x>310</x>
-      <y>400</y>
-      <width>87</width>
-      <height>27</height>
-     </rect>
-    </property>
-    <property name="text">
-     <string>Compare</string>
-    </property>
-   </widget>
-   <widget class="QLabel" name="label">
+   <widget class="QLabel" name="db1">
     <property name="geometry">
      <rect>
       <x>30</x>
-      <y>40</y>
+      <y>50</y>
       <width>71</width>
       <height>16</height>
      </rect>
@@ -116,11 +103,11 @@
      <cstring>cmbFirstDB</cstring>
     </property>
    </widget>
-   <widget class="QLabel" name="label_2">
+   <widget class="QLabel" name="db2">
     <property name="geometry">
      <rect>
       <x>370</x>
-      <y>40</y>
+      <y>50</y>
       <width>71</width>
       <height>16</height>
      </rect>
@@ -136,7 +123,7 @@
     <property name="geometry">
      <rect>
       <x>370</x>
-      <y>100</y>
+      <y>110</y>
       <width>301</width>
       <height>291</height>
      </rect>
@@ -170,20 +157,23 @@
     <property name="geometry">
      <rect>
       <x>30</x>
-      <y>20</y>
+      <y>10</y>
       <width>511</width>
-      <height>16</height>
+      <height>31</height>
      </rect>
     </property>
     <property name="text">
      <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=&quot; font-weight:600; font-style:italic;&quot;&gt;Please select working databases.&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+    </property>
+    <property name="alignment">
+     <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignVCenter</set>
     </property>
    </widget>
    <widget class="QCommandLinkButton" name="cmdPrev">
     <property name="geometry">
      <rect>
       <x>30</x>
-      <y>410</y>
+      <y>420</y>
       <width>172</width>
       <height>41</height>
      </rect>
@@ -200,13 +190,77 @@
     <property name="geometry">
      <rect>
       <x>545</x>
-      <y>20</y>
+      <y>10</y>
       <width>130</width>
       <height>20</height>
      </rect>
     </property>
     <property name="text">
      <string>Drag without contents</string>
+    </property>
+   </widget>
+   <widget class="Line" name="line">
+    <property name="geometry">
+     <rect>
+      <x>30</x>
+      <y>35</y>
+      <width>641</width>
+      <height>20</height>
+     </rect>
+    </property>
+    <property name="orientation">
+     <enum>Qt::Horizontal</enum>
+    </property>
+   </widget>
+   <widget class="QPushButton" name="btnCompare">
+    <property name="geometry">
+     <rect>
+      <x>240</x>
+      <y>410</y>
+      <width>110</width>
+      <height>23</height>
+     </rect>
+    </property>
+    <property name="minimumSize">
+     <size>
+      <width>110</width>
+      <height>0</height>
+     </size>
+    </property>
+    <property name="text">
+     <string>Compare tables</string>
+    </property>
+   </widget>
+   <widget class="QPushButton" name="btnCompareByContent">
+    <property name="geometry">
+     <rect>
+      <x>350</x>
+      <y>410</y>
+      <width>110</width>
+      <height>23</height>
+     </rect>
+    </property>
+    <property name="minimumSize">
+     <size>
+      <width>110</width>
+      <height>0</height>
+     </size>
+    </property>
+    <property name="text">
+     <string>Compare by content</string>
+    </property>
+   </widget>
+   <widget class="QPushButton" name="btnReset">
+    <property name="geometry">
+     <rect>
+      <x>597</x>
+      <y>410</y>
+      <width>75</width>
+      <height>23</height>
+     </rect>
+    </property>
+    <property name="text">
+     <string>Reset</string>
     </property>
    </widget>
   </widget>

@@ -48,14 +48,61 @@ Step2::Step2(QWidget *parent) :
     //Back button
     connect(this->ui->cmdPrev, SIGNAL(clicked()), SLOT(closeAction()));
 
-    //Compare button
+    //Compare tables button
     connect(this->ui->btnCompare, SIGNAL(clicked()), SLOT(compareTablesAction()));
+
+    //Compare by content button
+    connect(this->ui->btnCompareByContent, SIGNAL(clicked()), SLOT(compareByContentStep1Action()));
+
+    //Reset comparison button
+    connect(this->ui->btnReset, SIGNAL(clicked()), SLOT(resetCompare()));
+
+    //Initial disabled state
+    ui->btnReset->setVisible(false);
+    ui->btnCompare->setEnabled(false);
+    ui->btnCompareByContent->setEnabled(false);
 }
 
 Step2::~Step2()
 {
     m_testDb.close();
     delete ui;
+}
+
+void Step2::preCompare()
+{
+    //Keep tab on who has what
+    m_countF = ui->tabFirstDB->model()->rowCount();
+    m_countS = ui->tabSecondDB->model()->rowCount();
+
+    for (int i = 0; i < m_countF; i++)
+        m_listF << ui->tabFirstDB->model()->index(i,0).data().toString();
+
+    for (int i = 0; i < m_countS; i++)
+        m_listS << ui->tabSecondDB->model()->index(i,0).data().toString();
+
+    //Keep them neat
+    qSort(m_listF);
+    qSort(m_listS);
+
+    //Comparison
+    for (int i = 0; i < m_countF; i++)
+        for (int j = 0; j < m_countS; j++)
+            if (m_listF.at(i) == m_listS.at(j))
+                m_commonList << m_listF.at(i);
+
+    //Remove common tables (for marking)
+    foreach (QString str, m_commonList) {
+        m_listF.removeAll(str);
+        m_listS.removeAll(str);
+    }
+}
+
+void Step2::postCompare()
+{
+    m_listF.clear();
+    m_listS.clear();
+    m_commonList.clear();
 }
 
 void Step2::checkTable(int row)
@@ -65,8 +112,11 @@ void Step2::checkTable(int row)
         row=m_oldRow;
 
     //Change note on top.
-    if ((ui->cmbFirstDB->currentIndex() >= 0) && ui->cmbSecondDB->currentIndex() >= 0)
-        ui->lblHeader->setText("");
+    if ((ui->cmbFirstDB->currentIndex() >= 0) && ui->cmbSecondDB->currentIndex() >= 0) {
+        ui->lblHeader->setText("You can copy tables between databases by <strong>dragging and dropping</strong> <br />them from one database to the other.");
+        ui->btnCompare->setEnabled(true);
+        ui->btnCompareByContent->setEnabled(true);
+    }
 
     //Check the signal sender
     TabView *table = ui->tabFirstDB;
@@ -131,7 +181,6 @@ void Step2::checkTable(int row)
     model->insertColumns(0, 1);
     model->insertRows(0, m_testDb.tables().count());
     model->setHeaderData(0,Qt::Horizontal, "Table name", Qt::DisplayRole);
-//    model->setData(model->index(0,0),qVariantFromValue(QFont(QFont().defaultFamily(),-1,75)),Qt::FontRole);
 
     // ...and populate
     for (int i=0;i<m_testDb.tables().count();++i)
@@ -300,51 +349,94 @@ void Step2::viewTableAction()                                                   
 
 void Step2::compareTablesAction()
 {
-    //Keep tab on who has what
-    int countF = ui->tabFirstDB->model()->rowCount();
-    int countS = ui->tabSecondDB->model()->rowCount();
-
-    //Keep all table names into string lists
-    QStringList listF;
-    QStringList listS;
-    QStringList commonList;
-
-    for (int i = 0; i < countF; i++)
-        listF << ui->tabFirstDB->model()->index(i,0).data().toString();
-
-    for (int i = 0; i < countS; i++)
-        listS << ui->tabSecondDB->model()->index(i,0).data().toString();
-
-    //Keep them neat
-    qSort(listF);
-    qSort(listS);
-
-    //Comparison
-    for (int i = 0; i < countF; i++)
-        for (int j = 0; j < countS; j++)
-            if (listF.at(i) == listS.at(j))
-                commonList << listF.at(i);
-
-    //Remove common tables (for marking)
-    foreach (QString str, commonList) {
-        listF.removeAll(str);
-        listS.removeAll(str);
-    }
+    preCompare();
 
     //Marking
-    for (int i = 0; i < countF; i++)
-        if (listF.contains(ui->tabFirstDB->model()->index(i,0).data().toString())) {
+    for (int i = 0; i < m_countF; i++)
+        if (m_listF.contains(ui->tabFirstDB->model()->index(i,0).data().toString())) {
             ui->tabFirstDB->model()->setData(ui->tabFirstDB->model()->index(i,0),qVariantFromValue(QFont(QFont().defaultFamily(),-1,75)),Qt::FontRole);
             ui->tabFirstDB->model()->setData(ui->tabFirstDB->model()->index(i,0),qVariantFromValue(QColor(Qt::red)),Qt::TextColorRole);
         }
 
-    for (int i = 0; i < countS; i++)
-        if (listS.contains(ui->tabSecondDB->model()->index(i,0).data().toString())) {
+    for (int i = 0; i < m_countS; i++)
+        if (m_listS.contains(ui->tabSecondDB->model()->index(i,0).data().toString())) {
             ui->tabSecondDB->model()->setData(ui->tabSecondDB->model()->index(i,0),qVariantFromValue(QFont(QFont().defaultFamily(),-1,75)),Qt::FontRole);
             ui->tabSecondDB->model()->setData(ui->tabSecondDB->model()->index(i,0),qVariantFromValue(QColor(Qt::red)),Qt::TextColorRole);
         }
 
+    ui->lblHeader->setText(ui->lblHeader->text().append(" <i><strong>Non-equivalent tables have been marked in <span style=\"color:#ff0000\">red</span></strong></i>"));
+
+    //Allow reset
+    ui->btnReset->setVisible(true);
+
+    //Clear lists
+    postCompare();
 }
+
+void Step2::compareByContentStep1Action()
+{
+    preCompare();
+    for (int i = m_countF; i >= 0; --i)
+        if (m_listF.contains(ui->tabFirstDB->model()->index(i,0).data().toString()))
+            ui->tabFirstDB->model()->removeRow(i);
+
+    for (int i = m_countS; i >= 0; --i)
+        if (m_listS.contains(ui->tabSecondDB->model()->index(i,0).data().toString()))
+            ui->tabSecondDB->model()->removeRow(i);
+
+    ui->btnCompare->setEnabled(false);
+
+    ui->btnCompareByContent->disconnect();
+    ui->btnCompareByContent->setEnabled(false);
+
+    ui->lblHeader->setText("<i><strong>Select one table from one of the databases and click \"Compare by content\" again.</strong></i>");
+    ui->btnReset->setVisible(true);
+
+    connect(this->ui->tabFirstDB,SIGNAL(clicked(QModelIndex)),SLOT(doubleSelect(QModelIndex)));
+    connect(this->ui->tabSecondDB,SIGNAL(clicked(QModelIndex)),SLOT(doubleSelect(QModelIndex)));
+    postCompare();
+}
+
+void Step2::compareByContentStep2Action()
+{
+
+    ui->btnCompareByContent->disconnect();
+    connect(this->ui->btnCompareByContent, SIGNAL(clicked()), SLOT(compareByContentStep1Action()));
+}
+
+void Step2::doubleSelect(QModelIndex index)
+{
+    if(sender()->objectName() == QStringLiteral("tabFirstDB"))
+        ui->tabSecondDB->selectRow(index.row());
+    if(sender()->objectName() == QStringLiteral("tabSecondDB"))
+        ui->tabFirstDB->selectRow(index.row());
+
+    ui->btnCompareByContent->setEnabled(true);
+    connect(this->ui->btnCompareByContent, SIGNAL(clicked()), SLOT(compareByContentStep2Action()));
+}
+
+void Step2::resetCompare()
+{
+    int currentIndexF = ui->cmbFirstDB->currentIndex();
+    int currentIndexS = ui->cmbSecondDB->currentIndex();
+
+    ui->cmbFirstDB->setCurrentIndex(-1);
+    ui->cmbSecondDB->setCurrentIndex(-1);
+
+    ui->cmbFirstDB->setCurrentIndex(currentIndexF);
+    ui->cmbSecondDB->setCurrentIndex(currentIndexS);
+
+    ui->btnReset->setVisible(false);
+
+    ui->btnCompareByContent->disconnect();
+    ui->tabFirstDB->disconnect(SIGNAL(clicked(QModelIndex)));
+    ui->tabSecondDB->disconnect(SIGNAL(clicked(QModelIndex)));
+    connect(this->ui->btnCompareByContent, SIGNAL(clicked()), SLOT(compareByContentStep1Action()));
+
+    ui->lblHeader->setText("You can copy tables between databases by <strong>dragging and dropping</strong> <br />them from one database to the other.");
+}
+
+
 
 void Step2::closeAction()
 {

@@ -42,14 +42,28 @@ private:
     QSqlTableModel *m_dbtCont;
     int m_oldRow;
 
+    int m_countF;
+    int m_countS;
+
+    QStringList m_listF;
+    QStringList m_listS;
+    QStringList m_commonList;
+
+    void preCompare();
+    void postCompare();
+
+
 private slots:
     void checkTable(int row);
     void dbTableMove(QString table, QString source);
     void dbContext(const QPoint &pos);
     void removeTableAction();
     void viewTableAction();
-
     void compareTablesAction();
+    void compareByContentStep1Action();
+    void compareByContentStep2Action();
+    void doubleSelect(QModelIndex index);
+    void resetCompare();
     void closeAction();
 
 
