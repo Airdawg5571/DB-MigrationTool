@@ -25,6 +25,7 @@ class MainWindow : public QMainWindow
 public:
     explicit MainWindow(QWidget *parent = 0);
     ~MainWindow();
+
 public slots:
     void refreshServers();
     
@@ -34,6 +35,14 @@ private:
     Ui::MainWindow *ui;
     QModelIndex m_cellIndex;
     QString m_indexToBeEdited;
+
+    void initUi();
+    void setupSqliteDatabase();
+    void setupSqliteModel();
+    void setupSqliteTable();
+    void populateForEditing(ChangeDbs *editdbs);
+    void updateWhereNeeded(ChangeDbs *editdbs);
+    void copyCredentialsFromTable(QSqlDatabase testDb, int row);
 
 private slots:
     void enableButtons(QModelIndex index);

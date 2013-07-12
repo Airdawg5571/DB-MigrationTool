@@ -231,7 +231,7 @@
      <string>Compare tables</string>
     </property>
    </widget>
-   <widget class="QPushButton" name="btnCompareByContent">
+   <widget class="QPushButton" name="btnCompareByHeaders">
     <property name="geometry">
      <rect>
       <x>350</x>
@@ -247,7 +247,7 @@
      </size>
     </property>
     <property name="text">
-     <string>Compare by content</string>
+     <string>Compare by headers</string>
     </property>
    </widget>
    <widget class="QPushButton" name="btnReset">

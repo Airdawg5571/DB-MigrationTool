@@ -2,30 +2,24 @@
 #include "ui_step2.h"
 #include <QDebug>
 
+
 Step2::Step2(QWidget *parent) :
-    QMainWindow(parent),
+    QMainWindow(parent), 
     ui(new Ui::Step2)
 {
     ui->setupUi(this);
 
     //Center window on screen
-    this->setGeometry(QStyle::alignedRect(Qt::LeftToRight,
-                                          Qt::AlignCenter,
-                                          this->size(),
-                                          qApp->desktop()->availableGeometry()));
-    this->ui->statusBar->setSizeGripEnabled(false);
+    initUi();
+
+    QGraphicsDropShadowEffect *dropshadow = new QGraphicsDropShadowEffect;
+    dropshadow->setBlurRadius(40);
+    dropshadow->setXOffset(1);
+    dropshadow->setYOffset(1);
+    dropshadow->setColor(Qt::black);
 
     // Open/create SQLite file for stored database connection options
-    QSqlDatabase dbContainer = QSqlDatabase::addDatabase("QSQLITE", "dbContainer");
-    dbContainer.setDatabaseName("../DB-MigrationTool/dbCont.sqlite");                   //TODO : Change this path to reflect the release path
-    dbContainer.open();
-
-    //DB init
-    m_dbtCont = new QSqlTableModel(NULL,dbContainer);
-    m_dbtCont->setEditStrategy(QSqlTableModel::OnFieldChange);
-    m_dbtCont->setTable("conn");
-    m_dbtCont->setFilter("status != 'DEAD'");
-    m_dbtCont->select();
+    initSqlite();
 
     //Setup comboboxes
     ui->cmbFirstDB->setModel(m_dbtCont);
@@ -52,7 +46,7 @@ Step2::Step2(QWidget *parent) :
     connect(this->ui->btnCompare, SIGNAL(clicked()), SLOT(compareTablesAction()));
 
     //Compare by content button
-    connect(this->ui->btnCompareByContent, SIGNAL(clicked()), SLOT(compareByContentStep1Action()));
+    connect(this->ui->btnCompareByHeaders, SIGNAL(clicked()), SLOT(compareByHeaderStep1Action()));
 
     //Reset comparison button
     connect(this->ui->btnReset, SIGNAL(clicked()), SLOT(resetCompare()));
@@ -60,7 +54,7 @@ Step2::Step2(QWidget *parent) :
     //Initial disabled state
     ui->btnReset->setVisible(false);
     ui->btnCompare->setEnabled(false);
-    ui->btnCompareByContent->setEnabled(false);
+    ui->btnCompareByHeaders->setEnabled(false);
 }
 
 Step2::~Step2()
@@ -69,6 +63,28 @@ Step2::~Step2()
     delete ui;
 }
 
+void Step2::initUi()
+{
+    this->setGeometry(QStyle::alignedRect(Qt::LeftToRight,
+                                          Qt::AlignCenter,
+                                          this->size(),
+                                          qApp->desktop()->availableGeometry()));
+    this->ui->statusBar->setSizeGripEnabled(false);
+}
+
+void Step2::initSqlite()
+{
+    QSqlDatabase dbContainer = QSqlDatabase::addDatabase("QSQLITE", "dbContainer");
+    dbContainer.setDatabaseName("../DB-MigrationTool/dbCont.sqlite");                   //TODO : Change this path to reflect the release path
+    dbContainer.open();
+
+    //DB init
+    m_dbtCont = new QSqlTableModel(NULL, dbContainer);
+    m_dbtCont->setEditStrategy(QSqlTableModel::OnFieldChange);
+    m_dbtCont->setTable("conn");
+    m_dbtCont->setFilter("status != 'DEAD'");
+    m_dbtCont->select();
+}
 void Step2::preCompare()
 {
     //Keep tab on who has what
@@ -76,14 +92,17 @@ void Step2::preCompare()
     m_countS = ui->tabSecondDB->model()->rowCount();
 
     for (int i = 0; i < m_countF; i++)
-        m_listF << ui->tabFirstDB->model()->index(i,0).data().toString();
+        m_listF << ui->tabFirstDB->model()->index(i, 0).data().toString();
 
     for (int i = 0; i < m_countS; i++)
-        m_listS << ui->tabSecondDB->model()->index(i,0).data().toString();
+        m_listS << ui->tabSecondDB->model()->index(i, 0).data().toString();
 
     //Keep them neat
     qSort(m_listF);
     qSort(m_listS);
+
+    ui->tabFirstDB->sortByColumn(0, Qt::AscendingOrder);
+    ui->tabSecondDB->sortByColumn(0, Qt::AscendingOrder);
 
     //Comparison
     for (int i = 0; i < m_countF; i++)
@@ -105,37 +124,43 @@ void Step2::postCompare()
     m_commonList.clear();
 }
 
-void Step2::checkTable(int row)
+void Step2::refresh()
 {
-    //Hack - for removal of offline DBs - keep record of the previous option
-    if(row == -1)
-        row=m_oldRow;
+    int currentIndexF = ui->cmbFirstDB->currentIndex();
+    int currentIndexS = ui->cmbSecondDB->currentIndex();
 
-    //Change note on top.
-    if ((ui->cmbFirstDB->currentIndex() >= 0) && ui->cmbSecondDB->currentIndex() >= 0) {
-        ui->lblHeader->setText("You can copy tables between databases by <strong>dragging and dropping</strong> <br />them from one database to the other.");
-        ui->btnCompare->setEnabled(true);
-        ui->btnCompareByContent->setEnabled(true);
-    }
+    ui->cmbFirstDB->setCurrentIndex(-1);
+    ui->cmbSecondDB->setCurrentIndex(-1);
 
-    //Check the signal sender
-    TabView *table = ui->tabFirstDB;
-    if(sender()->objectName() == "cmbSecondDB")
-        table = ui->tabSecondDB;
+    ui->cmbFirstDB->setCurrentIndex(currentIndexF);
+    ui->cmbSecondDB->setCurrentIndex(currentIndexS);
+}
 
-    //Open a database with credentials provided by SQLite DB
+void Step2::openDbFromCredentials(int row, TabView *table)
+{
     m_testDb = QSqlDatabase::addDatabase(m_dbtCont->index(row, 3).data().toString(),
                                          QString("tests-%1").arg(table->objectName()));
     m_testDb.setDatabaseName(m_dbtCont->index(row, 2).data().toString());
     if (!m_dbtCont->index(row, 4).data().toString().isEmpty())                          //Man-mode a.k.a manual DSN definition
-        m_testDb.setDatabaseName(QString("Driver={%1};DATABASE=%2;").arg(m_dbtCont->index(row,4).data().toString(),
-                                                                         m_dbtCont->index(row,2).data().toString()));
-    m_testDb.setUserName(m_dbtCont->index(row,5).data().toString());
-    m_testDb.setPassword(m_dbtCont->index(row,6).data().toString());
-    m_testDb.setHostName(m_dbtCont->index(row,7).data().toString());
-    m_testDb.setPort(m_dbtCont->index(row,8).data().toInt());
+        m_testDb.setDatabaseName(QString("Driver={%1};DATABASE=%2;").arg(m_dbtCont->index(row, 4).data().toString(),
+                                                                         m_dbtCont->index(row, 2).data().toString()));
+    m_testDb.setUserName(m_dbtCont->index(row, 5).data().toString());
+    m_testDb.setPassword(m_dbtCont->index(row, 6).data().toString());
+    m_testDb.setHostName(m_dbtCont->index(row, 7).data().toString());
+    m_testDb.setPort(m_dbtCont->index(row, 8).data().toInt());
+}
 
-    //Make copies of DBs and queries for later use and easier identification
+void Step2::setHeaderNote()
+{
+    if ((ui->cmbFirstDB->currentIndex() >= 0) && ui->cmbSecondDB->currentIndex() >= 0) {
+        ui->lblHeader->setText("You can copy tables between databases by <strong>dragging and dropping</strong> <br />them from one database to the other.");
+        ui->btnCompare->setEnabled(true);
+        ui->btnCompareByHeaders->setEnabled(true);
+    }
+}
+
+void Step2::keepTrackOfQueriesAndDbs()
+{
     if (sender()->objectName() == QStringLiteral("cmbFirstDB"))
         m_dbF = m_testDb;
     if (sender()->objectName() == QStringLiteral("cmbSecondDB"))
@@ -146,19 +171,11 @@ void Step2::checkTable(int row)
     if (sender()->objectName() == QStringLiteral("cmbSecondDB"))
         m_dbQueryS = QSqlQuery(m_dbS);
 
-    //Error? Mark as DEAD and return
-    if (!m_testDb.open()) {
-        m_dbtCont->setData(m_dbtCont->index(row,9),"DEAD");
-        QMessageBox::warning(this,"DEAD",QString("Connection failed with message:\n\n %1").arg(m_testDb.lastError().text()));
-        m_dbtCont->setFilter(QStringLiteral("status != 'DEAD'"));
-        m_dbtCont->select();
-        return;
-    } else {
-        m_oldRow=row;
-        m_dbtCont->setData(m_dbtCont->index(row,9),"ALIVE");
-    }
+    qDebug() << sender()->objectName();
+}
 
-    //Redundancy check - we don't want a loop here.
+void Step2::checkTableRedundancy(int row)
+{
     if (row != m_oldRow)
         m_dbtCont->select();
     else {
@@ -175,24 +192,110 @@ void Step2::checkTable(int row)
         ui->cmbSecondDB->setCurrentIndex(row);
         row=-1;
     }
+}
 
-    //Setup model for the calling table (sender())
+QStandardItemModel * Step2::setupModelForSender(TabView *table)
+{
     QStandardItemModel *model = new QStandardItemModel(table);
     model->insertColumns(0, 1);
     model->insertRows(0, m_testDb.tables().count());
-    model->setHeaderData(0,Qt::Horizontal, "Table name", Qt::DisplayRole);
+    model->setHeaderData(0, Qt::Horizontal, "Table name", Qt::DisplayRole);
 
-    // ...and populate
+    return model;
+}
+
+void Step2::populateModelForSender(TabView *table, QStandardItemModel *model)
+{
     for (int i=0;i<m_testDb.tables().count();++i)
-        model->setData(model->index(i,0), m_testDb.tables().at(i));
+        model->setData(model->index(i, 0), m_testDb.tables().at(i));
 
     table->setModel(model);
     table->refresh();
     table->setEditTriggers(QAbstractItemView::NoEditTriggers);
+}
 
+void Step2::checkTable(int row)
+{
+    //Hack - for removal of offline DBs - keep record of the previous option
+    if(row == -1)
+        row=m_oldRow;
+
+    //Change note on top.
+    setHeaderNote();
+
+    //Check the signal sender
+    TabView *table = ui->tabFirstDB;
+    if(sender()->objectName() == "cmbSecondDB")
+        table = ui->tabSecondDB;
+
+    //Open a database with credentials provided by SQLite DB
+    openDbFromCredentials(row, table);
+
+    //Make copies of DBs and queries for later use and easier identification
+    keepTrackOfQueriesAndDbs();
+
+    //Error? Mark as DEAD and return
+    if (!m_testDb.open()) {
+        m_dbtCont->setData(m_dbtCont->index(row, 9), "DEAD");
+        QMessageBox::warning(this, "DEAD", QString("Connection failed with message:\n\n %1").arg(m_testDb.lastError().text()));
+        m_dbtCont->setFilter(QStringLiteral("status != 'DEAD'"));
+        m_dbtCont->select();
+        return;
+    } else {
+        m_oldRow=row;
+        m_dbtCont->setData(m_dbtCont->index(row, 9), "ALIVE");
+    }
+
+    //Redundancy check - we don't want a loop here.
+    checkTableRedundancy(row);
+
+    //Setup model for the calling table (sender())
+    QStandardItemModel *model = setupModelForSender(table);
+
+    // ...and populate
+    populateModelForSender(table, model);
 
     //Drag-and-drop connection
-    connect(table,SIGNAL(dbTableMoved(QString,QString)),SLOT(dbTableMove(QString,QString)));
+    connect(table, SIGNAL(dbTableMoved(QString, QString)), SLOT(dbTableMove(QString, QString)));
+}
+
+void Step2::repopulateDestinationTable(QString table, QSqlDatabase destDb, QSqlQuery destQuery, QSqlQuery srcQuery)
+{
+    destDb.transaction();                                                           // Near-lightspeed transaction
+    while (srcQuery.next()) {
+        QSqlRecord record = srcQuery.record();
+        QStringList names;
+        QStringList values;
+
+        for (int i = 0; i < record.count(); ++i) {
+            names << record.fieldName(i);
+            values << QString("\"%1\"").arg(record.value(i).toString());
+        }
+
+        //Build new query
+        QString queryStr;
+        queryStr.append(QString("INSERT INTO %1 (%2) VALUES (%3)").arg(table, names.join(", "), values.join(", ")));
+        destQuery.exec(queryStr);
+    }
+    destDb.commit();
+}
+
+QString Step2::setupDestinationTable(QString table, QSqlQuery srcQuery)
+{
+    QString tableCreateStr = QString("CREATE TABLE %1 (").arg(table);
+    QString pri = "(";                                                                  // pri: same concat, for PRI KEYS
+
+    while (srcQuery.next()) {
+        tableCreateStr.append(QString(" %1 %2, ").arg(srcQuery.record().value(0).toString(),
+                                                     srcQuery.record().value(1).toString()));
+        if (srcQuery.record().value(2).toString() == QStringLiteral("PRI"))
+            pri.append(QString("%1, ").arg(srcQuery.record().value(0).toString()));
+    }
+    pri.resize(pri.size()-2);
+    pri.append(")");
+    tableCreateStr.append(QString(" PRIMARY KEY %1)").arg(pri));
+
+    return tableCreateStr;
 }
 
 void Step2::dbTableMove(QString table, QString source)
@@ -223,18 +326,7 @@ void Step2::dbTableMove(QString table, QString source)
         return;
 
     // Concatenate a query string for recreating tables on the destination server
-    QString tableCreateStr = QString("CREATE TABLE %1 (").arg(table);
-    QString pri = "(";                                                                  // pri: same concat, for PRI KEYS
-
-    while (srcQuery.next()) {
-        tableCreateStr.append(QString(" %1 %2,").arg(srcQuery.record().value(0).toString(),
-                                                     srcQuery.record().value(1).toString()));
-        if (srcQuery.record().value(2).toString() == QStringLiteral("PRI"))
-            pri.append(QString("%1, ").arg(srcQuery.record().value(0).toString()));
-    }
-    pri.resize(pri.size()-2);
-    pri.append(")");
-    tableCreateStr.append(QString(" PRIMARY KEY %1)").arg(pri));
+    QString tableCreateStr = setupDestinationTable(table, srcQuery);
 
     //DROP destination if exists
     if (!destQuery.exec(QString("DROP TABLE IF EXISTS %1").arg(table)))
@@ -248,24 +340,7 @@ void Step2::dbTableMove(QString table, QString source)
     if (!ui->chkCopyWithoutContents->isChecked()) {
         if (!srcQuery.exec(QString("SELECT * FROM %1").arg(table)))
             return;
-
-        destDb.transaction();                                                           // Near-lightspeed transaction
-        while (srcQuery.next()) {
-            QSqlRecord record = srcQuery.record();
-            QStringList names;
-            QStringList values;
-
-            for (int i = 0; i < record.count(); ++i) {
-                names << record.fieldName(i);
-                values << QString("\"%1\"").arg(record.value(i).toString());
-            }
-
-            //Build new query
-            QString queryStr;
-            queryStr.append(QString("INSERT INTO %1 (%2) VALUES (%3)").arg(table, names.join(", "), values.join(", ")));
-            destQuery.exec(queryStr);
-        }
-        destDb.commit();
+        repopulateDestinationTable(table, destDb, destQuery, srcQuery);
     }
 }
 
@@ -293,9 +368,9 @@ void Step2::dbContext(const QPoint &pos)                                        
 
 void Step2::removeTableAction()                                                         //Drop table funct.
 {
-    if (QMessageBox::warning(this,"Remove (DROP) table from database",\
-                             "Are you sure you want to DROP the selected table from the database?",\
-                             QMessageBox::Ok,QMessageBox::Cancel) == QMessageBox::Cancel)
+    if (QMessageBox::warning(this, "Remove (DROP) table from database", \
+                             "Are you sure you want to DROP the selected table from the database?", \
+                             QMessageBox::Ok, QMessageBox::Cancel) == QMessageBox::Cancel)
         return;
 
     if (m_dbContextSource == FIRST) {
@@ -311,14 +386,8 @@ void Step2::removeTableAction()                                                 
     }
 }
 
-void Step2::viewTableAction()                                                           //Table quick-view
+QPushButton * Step2::setupViewWindow(QTableView *table, QWidget *viewTable)
 {
-    //Custom "handwritten" window
-    QWidget *viewTable = new QWidget(this);
-    viewTable->setWindowFlags(Qt::Tool | Qt::CustomizeWindowHint);
-    viewTable->setGeometry(QCursor::pos().x(), QCursor::pos().y(), 400, 300);
-
-    QTableView *table = new QTableView;
     QLabel *label = new QLabel("Table is editable. Press <b>F2</b> or <b>double-click</b> cell to edit.");
     QPushButton *btnOk = new QPushButton("&Close");
 
@@ -330,12 +399,25 @@ void Step2::viewTableAction()                                                   
     upperwrap->addStretch();
     center->addLayout(upperwrap);
     center->addWidget(table);
-    QSqlTableModel *model = new QSqlTableModel(this,m_dbF);
+
+    return btnOk;
+}
+
+void Step2::viewTableAction()                                                           //Table quick-view
+{
+    //Custom "handwritten" window
+    QWidget *viewTable = new QWidget(this);
+    viewTable->setWindowFlags(Qt::Tool | Qt::CustomizeWindowHint);
+    viewTable->setGeometry(QCursor::pos().x(), QCursor::pos().y(), 400, 300);
+
+    QTableView *table = new QTableView();
+    QPushButton *btnOk = setupViewWindow(table, viewTable);
+    QSqlTableModel *model = new QSqlTableModel(this, m_dbF);
 
     //Wrong model? Oops. Sorry, will redefine. (There's no other way to change the db it's connecting to)
     if (m_dbContextSource == SECOND) {
         delete model;
-        QSqlTableModel *model = new QSqlTableModel(this,m_dbS);
+        QSqlTableModel *model = new QSqlTableModel(this, m_dbS);
     }
     model->setTable(m_cellIndex.sibling(m_cellIndex.row(), 0).data().toString());
     model->setEditStrategy(QSqlTableModel::OnFieldChange);                              //Nice and editable
@@ -347,24 +429,29 @@ void Step2::viewTableAction()                                                   
     viewTable->show();
 }
 
+void Step2::markNonEquiv()
+{
+    for (int i = 0; i < m_countF; i++)
+        if (m_listF.contains(ui->tabFirstDB->model()->index(i, 0).data().toString())) {
+            ui->tabFirstDB->model()->setData(ui->tabFirstDB->model()->index(i, 0), qVariantFromValue(QFont(QFont().defaultFamily(), -1, 75)), Qt::FontRole);
+            ui->tabFirstDB->model()->setData(ui->tabFirstDB->model()->index(i, 0), qVariantFromValue(QColor(Qt::red)), Qt::TextColorRole);
+        }
+
+    for (int i = 0; i < m_countS; i++)
+        if (m_listS.contains(ui->tabSecondDB->model()->index(i, 0).data().toString())) {
+            ui->tabSecondDB->model()->setData(ui->tabSecondDB->model()->index(i, 0), qVariantFromValue(QFont(QFont().defaultFamily(), -1, 75)), Qt::FontRole);
+            ui->tabSecondDB->model()->setData(ui->tabSecondDB->model()->index(i, 0), qVariantFromValue(QColor(Qt::red)), Qt::TextColorRole);
+        }
+
+    ui->lblHeader->setText(ui->lblHeader->text().append(" <i><strong>Non-equivalent tables have been marked in <span style=\"color:#ff0000\">red</span></strong></i>"));
+}
+
 void Step2::compareTablesAction()
 {
     preCompare();
 
     //Marking
-    for (int i = 0; i < m_countF; i++)
-        if (m_listF.contains(ui->tabFirstDB->model()->index(i,0).data().toString())) {
-            ui->tabFirstDB->model()->setData(ui->tabFirstDB->model()->index(i,0),qVariantFromValue(QFont(QFont().defaultFamily(),-1,75)),Qt::FontRole);
-            ui->tabFirstDB->model()->setData(ui->tabFirstDB->model()->index(i,0),qVariantFromValue(QColor(Qt::red)),Qt::TextColorRole);
-        }
-
-    for (int i = 0; i < m_countS; i++)
-        if (m_listS.contains(ui->tabSecondDB->model()->index(i,0).data().toString())) {
-            ui->tabSecondDB->model()->setData(ui->tabSecondDB->model()->index(i,0),qVariantFromValue(QFont(QFont().defaultFamily(),-1,75)),Qt::FontRole);
-            ui->tabSecondDB->model()->setData(ui->tabSecondDB->model()->index(i,0),qVariantFromValue(QColor(Qt::red)),Qt::TextColorRole);
-        }
-
-    ui->lblHeader->setText(ui->lblHeader->text().append(" <i><strong>Non-equivalent tables have been marked in <span style=\"color:#ff0000\">red</span></strong></i>"));
+    markNonEquiv();
 
     //Allow reset
     ui->btnReset->setVisible(true);
@@ -373,35 +460,75 @@ void Step2::compareTablesAction()
     postCompare();
 }
 
-void Step2::compareByContentStep1Action()
+void Step2::removeNonEquiv()
 {
-    preCompare();
     for (int i = m_countF; i >= 0; --i)
-        if (m_listF.contains(ui->tabFirstDB->model()->index(i,0).data().toString()))
+        if (m_listF.contains(ui->tabFirstDB->model()->index(i, 0).data().toString()))
             ui->tabFirstDB->model()->removeRow(i);
 
     for (int i = m_countS; i >= 0; --i)
-        if (m_listS.contains(ui->tabSecondDB->model()->index(i,0).data().toString()))
+        if (m_listS.contains(ui->tabSecondDB->model()->index(i, 0).data().toString()))
             ui->tabSecondDB->model()->removeRow(i);
+}
+
+void Step2::compareByHeaderStep1Action()
+{
+    preCompare();
+    removeNonEquiv();
 
     ui->btnCompare->setEnabled(false);
 
-    ui->btnCompareByContent->disconnect();
-    ui->btnCompareByContent->setEnabled(false);
+    ui->btnCompareByHeaders->disconnect();
+    ui->btnCompareByHeaders->setEnabled(false);
 
     ui->lblHeader->setText("<i><strong>Select one table from one of the databases and click \"Compare by content\" again.</strong></i>");
     ui->btnReset->setVisible(true);
 
-    connect(this->ui->tabFirstDB,SIGNAL(clicked(QModelIndex)),SLOT(doubleSelect(QModelIndex)));
-    connect(this->ui->tabSecondDB,SIGNAL(clicked(QModelIndex)),SLOT(doubleSelect(QModelIndex)));
+    connect(this->ui->tabFirstDB, SIGNAL(clicked(QModelIndex)), SLOT(doubleSelect(QModelIndex)));
+    connect(this->ui->tabSecondDB, SIGNAL(clicked(QModelIndex)), SLOT(doubleSelect(QModelIndex)));
     postCompare();
 }
 
-void Step2::compareByContentStep2Action()
+void Step2::compareByHeaderStep2Action()
 {
+    QSqlQuery queryF = QSqlQuery(m_dbQueryF);
+    QSqlQuery queryS = QSqlQuery(m_dbQueryS);
 
-    ui->btnCompareByContent->disconnect();
-    connect(this->ui->btnCompareByContent, SIGNAL(clicked()), SLOT(compareByContentStep1Action()));
+    if (!queryF.exec(QString("SELECT COLUMN_NAME FROM INFORMATION_SCHEMA.COLUMNS "
+                             "WHERE TABLE_NAME = '%1'").arg(ui->tabFirstDB->currentIndex().data().toString()))) {
+        qDebug() << "queryF not available.";
+        return;
+    }
+
+    if (!queryS.exec(QString("SELECT COLUMN_NAME FROM INFORMATION_SCHEMA.COLUMNS "
+                             "WHERE TABLE_NAME = '%1'").arg(ui->tabSecondDB->currentIndex().data().toString()))) {
+        qDebug() << "queryS not available.";
+        return;
+    }
+
+    QStringList headerF;
+    QStringList headerS;
+
+    while(queryF.next())
+        headerF.append(queryF.value(0).toString());
+
+    while(queryS.next())
+        headerS.append(queryS.value(0).toString());
+
+    headerF.removeDuplicates();
+    headerS.removeDuplicates();
+
+    qDebug() << headerF.join("::");
+    qDebug() << headerS.join("::");
+
+    if(!(headerF == headerS) || (headerF.count() != headerS.count())) {
+        QMessageBox::critical(this, "Tables not equivalent", "The tables have the same name but different headers.\n\nComparison aborted.");
+        resetCompare();
+        return;
+    }
+
+    ui->btnCompareByHeaders->disconnect();
+    connect(this->ui->btnCompareByHeaders, SIGNAL(clicked()), SLOT(compareByHeaderStep1Action()));
 }
 
 void Step2::doubleSelect(QModelIndex index)
@@ -411,27 +538,20 @@ void Step2::doubleSelect(QModelIndex index)
     if(sender()->objectName() == QStringLiteral("tabSecondDB"))
         ui->tabFirstDB->selectRow(index.row());
 
-    ui->btnCompareByContent->setEnabled(true);
-    connect(this->ui->btnCompareByContent, SIGNAL(clicked()), SLOT(compareByContentStep2Action()));
+    ui->btnCompareByHeaders->setEnabled(true);
+    connect(this->ui->btnCompareByHeaders, SIGNAL(clicked()), SLOT(compareByHeaderStep2Action()));
 }
 
 void Step2::resetCompare()
 {
-    int currentIndexF = ui->cmbFirstDB->currentIndex();
-    int currentIndexS = ui->cmbSecondDB->currentIndex();
-
-    ui->cmbFirstDB->setCurrentIndex(-1);
-    ui->cmbSecondDB->setCurrentIndex(-1);
-
-    ui->cmbFirstDB->setCurrentIndex(currentIndexF);
-    ui->cmbSecondDB->setCurrentIndex(currentIndexS);
+    refresh();
 
     ui->btnReset->setVisible(false);
 
-    ui->btnCompareByContent->disconnect();
+    ui->btnCompareByHeaders->disconnect();
     ui->tabFirstDB->disconnect(SIGNAL(clicked(QModelIndex)));
     ui->tabSecondDB->disconnect(SIGNAL(clicked(QModelIndex)));
-    connect(this->ui->btnCompareByContent, SIGNAL(clicked()), SLOT(compareByContentStep1Action()));
+    connect(this->ui->btnCompareByHeaders, SIGNAL(clicked()), SLOT(compareByHeaderStep1Action()));
 
     ui->lblHeader->setText("You can copy tables between databases by <strong>dragging and dropping</strong> <br />them from one database to the other.");
 }

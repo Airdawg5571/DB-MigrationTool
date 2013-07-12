@@ -7,6 +7,7 @@
 #include <QMenu>
 #include <QWidget>
 #include <QLayout>
+#include <QGraphicsDropShadowEffect>
 
 #include <QtCore>
 #include <QtGui>
@@ -28,7 +29,8 @@ class Step2 : public QMainWindow
 public:
     explicit Step2(QWidget *parent = 0);
     ~Step2();
-    
+
+
 private:
     Ui::Step2 *ui;
 
@@ -51,7 +53,21 @@ private:
 
     void preCompare();
     void postCompare();
+    void refresh();
 
+    void initUi();
+    void initSqlite();
+    void openDbFromCredentials(int row, TabView *table);
+    void setHeaderNote();
+    void keepTrackOfQueriesAndDbs();
+    void checkTableRedundancy(int row);
+    QStandardItemModel * setupModelForSender(TabView *table);
+    void populateModelForSender(TabView *table, QStandardItemModel *model);
+    void repopulateDestinationTable(QString table, QSqlDatabase destDb, QSqlQuery destQuery, QSqlQuery srcQuery);
+    QString setupDestinationTable(QString table, QSqlQuery srcQuery);
+    QPushButton * setupViewWindow(QTableView *table, QWidget *viewTable);
+    void markNonEquiv();
+    void removeNonEquiv();
 
 private slots:
     void checkTable(int row);
@@ -60,12 +76,11 @@ private slots:
     void removeTableAction();
     void viewTableAction();
     void compareTablesAction();
-    void compareByContentStep1Action();
-    void compareByContentStep2Action();
+    void compareByHeaderStep1Action();
+    void compareByHeaderStep2Action();
     void doubleSelect(QModelIndex index);
     void resetCompare();
     void closeAction();
-
 
 signals:
 //    void clicked();

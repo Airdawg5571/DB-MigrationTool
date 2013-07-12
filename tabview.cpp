@@ -47,29 +47,30 @@ void TabView::dropEvent(QDropEvent *de)
 {
     // Unpack dropped data and handle it
     QModelIndex index = this->indexAt(de->pos());
+
     if (index.isValid()) {
         this->model()->insertRow(index.row());
         if (de->mimeData()->hasFormat(QStringLiteral("text/second-text"))) {
-            this->model()->setData(index,de->mimeData()->data(QStringLiteral("text/second-text")));
-            emit dbTableMoved(de->mimeData()->data(QStringLiteral("text/second-text")),SECOND);
+            this->model()->setData(index, de->mimeData()->data(QStringLiteral("text/second-text")));
+            emit dbTableMoved(de->mimeData()->data(QStringLiteral("text/second-text")), SECOND);
         }
         if (de->mimeData()->hasFormat(QStringLiteral("text/first-text"))) {
-            this->model()->setData(index,de->mimeData()->data(QStringLiteral("text/first-text")));
-            emit dbTableMoved(de->mimeData()->data(QStringLiteral("text/first-text")),FIRST);
+            this->model()->setData(index, de->mimeData()->data(QStringLiteral("text/first-text")));
+            emit dbTableMoved(de->mimeData()->data(QStringLiteral("text/first-text")), FIRST);
         }
         this->refresh();
     }
     else{
         this->model()->insertRow(this->model()->rowCount());
         if (de->mimeData()->hasFormat(QStringLiteral("text/second-text"))) {
-            this->model()->setData(this->model()->index(this->model()->rowCount()-1,0),\
+            this->model()->setData(this->model()->index(this->model()->rowCount()-1, 0), \
                                    de->mimeData()->data(QStringLiteral("text/second-text")));
-            emit dbTableMoved(de->mimeData()->data(QStringLiteral("text/second-text")),SECOND);
+            emit dbTableMoved(de->mimeData()->data(QStringLiteral("text/second-text")), SECOND);
         }
         if (de->mimeData()->hasFormat(QStringLiteral("text/first-text"))) {
-            this->model()->setData(this->model()->index(this->model()->rowCount()-1,0),\
+            this->model()->setData(this->model()->index(this->model()->rowCount()-1, 0), \
                                    de->mimeData()->data(QStringLiteral("text/first-text")));
-            emit dbTableMoved(de->mimeData()->data(QStringLiteral("text/first-text")),FIRST);
+            emit dbTableMoved(de->mimeData()->data(QStringLiteral("text/first-text")), FIRST);
         }
         this->refresh();
     }

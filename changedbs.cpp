@@ -2,25 +2,64 @@
 #include "ui_changedbs.h"
 #include <QDebug>
 
+
 ChangeDbs::ChangeDbs(QWidget *parent) :
-    QDialog(parent),
+    QDialog(parent), 
     ui(new Ui::ChangeDBs)
 {
     ui->setupUi(this);
     QStringList drivers = QSqlDatabase::drivers();
     QStringList odbcDrivers = QSettings("HKEY_LOCAL_MACHINE\\"
-                                        "SOFTWARE\\ODBC\\ODBCINST.INI\\ODBC Drivers",
+                                        "SOFTWARE\\ODBC\\ODBCINST.INI\\ODBC Drivers", 
                                         QSettings::NativeFormat).childKeys();
 
     //Unimplemented QtSql drivers - no plugins
+    removeUselessSqlDrivers(drivers);
+
+    //"File DSN" ODBC drivers - useless
+    removeUselessOdbcDrivers(odbcDrivers);
+
+    ui->cmbDriver->addItems(drivers);
+    ui->cmbODBC->addItems(odbcDrivers);
+    ui->cmbODBC->setVisible(false);
+    ui->chkDSN->setVisible(false);
+    ui->chkDSN->setChecked(true);                                                       //Check it so you can uncheck it 15 lines below :|
+
+    //Customize fields for each driver type
+    if(ui->cmbDriver->currentText() == "QODBC")
+        this->setupLayout("QODBC");                                                     //One-item-only workaround
+    connect(ui->cmbDriver, \
+            SIGNAL(currentIndexChanged(QString)), \
+            this, \
+            SLOT(setupLayout(QString)));
+
+    //Buttons
+    connect(ui->btnClear, SIGNAL(clicked()), SLOT(clearAction()));
+    connect(ui->btnOk, SIGNAL(clicked()), SLOT(okAction()));
+    connect(ui->btnCancel, SIGNAL(clicked()), SLOT(reject()));
+    connect(ui->btnTest, SIGNAL(clicked()), SLOT(testAction()));
+
+    connect(ui->chkDSN, SIGNAL(toggled(bool)), SLOT(overrideDSN(bool)));
+    ui->chkDSN->setChecked(false);
+}
+
+ChangeDbs::~ChangeDbs()
+{
+    delete ui;
+}
+
+void ChangeDbs::removeUselessSqlDrivers(QStringList drivers)
+{
     drivers.removeAll("QMYSQL3");
     drivers.removeAll("QOCI8");
     drivers.removeAll("QODBC3");
     drivers.removeAll("QPSQL7");
     drivers.removeAll("QTDS7");
     drivers.removeAll("QSQLITE");
+}
 
-    //"File DSN" ODBC drivers - useless
+void ChangeDbs::removeUselessOdbcDrivers(QStringList odbcDrivers)
+{
     odbcDrivers.removeAll("Driver da Microsoft para arquivos texto (*.txt; *.csv)");
     odbcDrivers.removeAll("Driver do Microsoft Access (*.mdb)" );
     odbcDrivers.removeAll("Driver do Microsoft Excel(*.xls)" );
@@ -40,34 +79,6 @@ ChangeDbs::ChangeDbs(QWidget *parent) :
     odbcDrivers.removeAll("Microsoft dBase Driver (*.dbf)" );
     odbcDrivers.removeAll("Microsoft dBase VFP Driver (*.dbf)" );
     odbcDrivers.removeAll("Microsoft dBase-Treiber (*.dbf)" );
-
-    ui->cmbDriver->addItems(drivers);
-    ui->cmbODBC->addItems(odbcDrivers);
-    ui->cmbODBC->setVisible(false);
-    ui->chkDSN->setVisible(false);
-    ui->chkDSN->setChecked(true);                                                       //Check it so you can uncheck it 15 lines below :|
-
-    //Customize fields for each driver type
-    if(ui->cmbDriver->currentText() == "QODBC")
-        this->setupLayout("QODBC");                                                     //One-item-only workaround
-    connect(ui->cmbDriver,\
-            SIGNAL(currentIndexChanged(QString)),\
-            this,\
-            SLOT(setupLayout(QString)));
-
-    //Buttons
-    connect(ui->btnClear, SIGNAL(clicked()), SLOT(clearAction()));
-    connect(ui->btnOk, SIGNAL(clicked()), SLOT(okAction()));
-    connect(ui->btnCancel, SIGNAL(clicked()), SLOT(reject()));
-    connect(ui->btnTest, SIGNAL(clicked()), SLOT(testAction()));
-
-    connect(ui->chkDSN, SIGNAL(toggled(bool)), SLOT(overrideDSN(bool)));
-    ui->chkDSN->setChecked(false);
-}
-
-ChangeDbs::~ChangeDbs()
-{
-    delete ui;
 }
 
 
@@ -179,7 +190,7 @@ void ChangeDbs::okAction()
 
 void ChangeDbs::testAction()
 {
-    QSqlDatabase testDb = QSqlDatabase::addDatabase(driver(),"tests-chdb");
+    QSqlDatabase testDb = QSqlDatabase::addDatabase(driver(), "tests-chdb");
     testDb.setDatabaseName(dbName());
     if(ui->chkDSN->isChecked())                                                        //Man-mode a.k.a manual DSN definition
         testDb.setDatabaseName(QString("Driver={%1};DATABASE=%2;").arg(options(), dbName()));
@@ -190,9 +201,9 @@ void ChangeDbs::testAction()
 
 
     if (testDb.open())
-        QMessageBox::information(this,"ALIVE","Connection successful!");
+        QMessageBox::information(this, "ALIVE", "Connection successful!");
     else
-        QMessageBox::warning(this,"DEAD",QString("Connection failed with message:\n\n%1").arg(testDb.lastError().text()));
+        QMessageBox::warning(this, "DEAD", QString("Connection failed with message:\n\n%1").arg(testDb.lastError().text()));
     testDb.close();
     testDb.removeDatabase("tests-chdb");
 }

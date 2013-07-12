@@ -42,6 +42,8 @@ public slots:
 
 private:
     Ui::ChangeDBs *ui;
+    void removeUselessSqlDrivers(QStringList drivers);
+    void removeUselessOdbcDrivers(QStringList odbcDrivers);
 
 private slots:
     void setupLayout(QString driver);
